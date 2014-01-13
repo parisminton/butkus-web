@@ -1,8 +1,7 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+  h1= 'Tell me about today\'s training.'
 
   form
     label(for='date') Date
@@ -20,4 +19,4 @@ block content
     label(for='immediate_protein') Immediate protein
     input(type='text', name='immediate_protein')
 
-    input(type='submit', value="Store" )
+    input(type='submit', value="Store today's stats")
