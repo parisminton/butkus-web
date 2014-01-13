@@ -1,0 +1,23 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #{title}
+
+  form
+    label(for='date') Date
+    input(type='text', name='date')
+    
+    label(for='day') Day
+    input(type='text', name='day')
+
+    label(for='time') Time
+    input(type='text', name='time')
+    
+    label(for='current_weight') Current weight
+    input(type='text', name='current_weight')
+
+    label(for='immediate_protein') Immediate protein
+    input(type='text', name='immediate_protein')
+
+    input(type='submit', value="Store" )
