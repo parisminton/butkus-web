@@ -15,12 +15,8 @@ var express = require('express'),
 // pass Node's require function to requirejs before setting other dependencies
 requirejs.config({ 
   nodeRequire : require,
-  "paths" : {
-    "jquery" : "http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min"
-  }
+  baseUrl : 'public/javascripts',
 });
-
-// requirejs(["./public/javascripts/main"]);
 
 // all environments
 app.set('port', process.env.PORT || 3000);

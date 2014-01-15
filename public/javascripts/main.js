@@ -1,3 +1,3 @@
-define(["jquery"], function ($) {
+requirejs(["jquery"], function ($) {
   console.log($('input').attr('name'));
 });
