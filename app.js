@@ -4,19 +4,12 @@
  */
 
 var express = require('express'),
-    requirejs = require('requirejs'),
     routes = require('./routes'),
     user = require('./routes/user'),
     http = require('http'),
     path = require('path'),
     stylus = require('stylus'),
     app = express();
-
-// pass Node's require function to requirejs before setting other dependencies
-requirejs.config({ 
-  nodeRequire : require,
-  baseUrl : 'public/javascripts',
-});
 
 // all environments
 app.set('port', process.env.PORT || 3000);
