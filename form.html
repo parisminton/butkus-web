@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Butkus: Exercise log</title>
+    <meta charset="utf-8" />
+  </head>
+
+  <body>
+    <form action="/">
+      <div class="button">
+        <p>Start exercising.</p>
+      </div>
+
+      <div class="button">
+        <p>Log a previous exercise.</p>
+      </div>
+
+      <fieldset class="exercise">
+        <div class="field">
+          <label for="user_weight">How much do you weigh?</label>
+          <input name="user_weight" id="user_weight" type="text" />
+        </div>
+
+        <div class="field">
+          <label for="stretched_before">Stretched before?</label>
+          <select name="stretched_before" id="stretched_before">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+        <div class="button">
+          <p>Start the timer.</p>
+        </div>
+
+        <fieldset class="set1">
+          <legend>Set 1</legend>
+          <div class="field">
+            <label for="weight1">Weight</label>
+            <input name="weight1" id="weight1" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="reps1">Reps</label>
+            <input name="reps1" id="reps1" type="text" />
+          </div>
+
+          <div class="field">
+            <label for="rest1">Rest</label>
+            <input name="rest1" id="rest1" type="text" />
+          </div>
+        </fieldset>
+
+        <div class="button">
+          <p>Add a set.</p>
+        </div>
+
+        <div class="field">
+          <label for="stretched_after">Stretched after?</label>
+          <select name="stretched_after" id="stretched_after">
+            <option value="true">Yes</option>
+            <option value="false">No</option>
+          </select>
+        </div>
+
+      </fieldset>
+
+      <div class="button">
+        <p>Add an exercise.</p>
+      </div>
+
+      <div class="field">
+        <label for="exercise">Which exercise are you doing?</label>
+        <select name="exercise" id="exercise">
+          <option value="barbell_squats">Barbell squats</option>
+          <option value="chinups">Chinups</option>
+          <option value="ezbar_curls">Curls with EZ-bar</option>
+          <option value="dips">Dips</option>
+          <option value="dumbbell_curls">Dumbbell curls</option>
+          <option value="dumbbell_raises">Dumbbell raises</option>
+          <option value="flat_bench">Flat bench</option>
+          <option value="pullups">Pullups</option>
+          <option value="pushups">Pushups</option>
+        </select>
+      </div>
+
+      <input type="submit" value="Save"/>
+    </form>
+  </body>
+</html>
+
