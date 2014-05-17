@@ -5,6 +5,6 @@ exports.index = function(req, res){
 };
 
 // exercise form
-exports.exercise = function(req, res){
-  res.render('exercise', { title: 'Exercise' });
+exports.log = function(req, res){
+  res.render('log', { title : 'Butkus | Log your exercise' });
 };
