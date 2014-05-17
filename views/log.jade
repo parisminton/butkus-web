@@ -1,22 +1,93 @@
 extends layout
 
 block content
-  h1= 'Tell me about today\'s training.'
+  h1 Tell me about this round of training.
 
   form
-    label(for='date') Date
-    input(type='text', name='date')
+    div.button
+      p Starting right now. I'll log results as I go.
+
+    div.button
+      p I'm logging a previous training round.
+
+    div.field
+      label(for='current_weight') How much do you weigh?
+      input(type='text', name='current_weight', id='current_weight')
+
+    div.field
+      label(for='date') Date
+      input(type='text', name='date', id='date')
     
-    label(for='day') Day
-    input(type='text', name='day')
+    div.field
+      label(for='day') Day
+      select(name='day', id='day')
+        option(value='sunday') Sunday
+        option(value='monday') Monday
+        option(value='tuesday') Tuesday
+        option(value='wednesday') Wednesday
+        option(value='thursday') Thursday
+        option(value='friday') Friday
+        option(value='saturday') Saturday
 
-    label(for='time') Time
-    input(type='text', name='time')
-    
-    label(for='current_weight') Current weight
-    input(type='text', name='current_weight')
+    div.field
+      label(for='time') Time
+      input(type='text', name='time', id='time')
+      
+    fieldset.exercise
+      div.button
+        p Start the timer.
 
-    label(for='immediate_protein') Immediate protein
-    input(type='text', name='immediate_protein')
+      div.field
+        label(for='stretched_before') Stretched before?
+        select(name='stretched_before', id='stretched_before')
+          option(value='true') Yes
+          option(value='false') No
 
-    input(type='submit', value="Store today's stats")
+      fieldset.set0
+        legend Set 1
+        div.field
+          label(for='set0_weight') Weight
+          input(name='set0_weight', id='set0_weight')
+
+        div.field
+          label(for='set0_reps') Reps
+          input(name='set0_reps', id='set0_reps')
+
+        div.field
+          label(for='set0_rest') Rest
+          input(name='set0_rest', id='set0_rest')
+      
+        div.field
+          label(for='set0_comment') Comment
+          textarea(name='set0_comment', id='set0_comment')
+      
+      div.button
+        p Add a set.
+
+      div.field
+        label(for='stretched_after') Stretched after?
+        select(name='stretched_after', id='stretched_after')
+          option(value='true') Yes
+          option(value='false') No
+
+    div.button
+      p Add an exercise.
+
+    div.field
+      label(for='exercise_name') Which exercise are you doing?
+      select(name='exercise_name', id='exercise_name')
+        option(value='barbell_squats') Barbell squats
+        option(value='chinups') Chinups
+        option(value='ezbar_curls') Curls with EZ-bar
+        option(value='dips') Dips
+        option(value='dumbbell_curls') Dumbbell curls
+        option(value='dumbbell_raises') Dumbbell raises
+        option(value='flat_bench') Flat bench
+        option(value='pullups') Pullups
+        option(value='pushups') Pushups
+
+    div.field
+      label(for='immediate_protein') Immediate protein
+      input(type='text', name='immediate_protein', id='immediate_protein')
+
+    input(type='submit', value="Save")
