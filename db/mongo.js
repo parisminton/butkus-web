@@ -25,11 +25,11 @@ TrainingBout = mongoose.model('TrainingBout', trainingBoutSchema);
 
 saveBout = function (data) {
   bout = new TrainingBout ({
-    current_weight : data.weight,
+    current_weight : data.current_weight,
     date : new Date(),
     day : data.day,
     time : new Date().getTime(),
-    immediate_protein : true
+    immediate_protein : data.immediate_protein
   });
 
   bout.save(function (err, bout) {
@@ -43,3 +43,4 @@ saveBout = function (data) {
 } // end saveBout
 
 // saveBout( { weight : 176, day : 'Boxing Day' } );
+exports.saveBout = saveBout;

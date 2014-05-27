@@ -3,7 +3,7 @@ extends layout
 block content
   h1 Tell me about your round of training.
 
-  form
+  form(method="post")
     div.button
       p Starting right now. I'll log results as I go.
 
@@ -88,6 +88,8 @@ block content
 
     div.field
       label(for='immediate_protein') Immediate protein
-      input(type='text', name='immediate_protein', id='immediate_protein')
+      select(name='immediate_protein', id='immediate_protein')
+        option(value='true') Yes
+        option(value='false') No
 
     input(type='submit', value="Save")
