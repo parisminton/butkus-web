@@ -24,11 +24,16 @@ trainingBoutSchema = mongoose.Schema({
 TrainingBout = mongoose.model('TrainingBout', trainingBoutSchema);
 
 saveBout = function (data) {
+  var newdate = new Date();
+
   bout = new TrainingBout ({
+    date : newdate
+    day : data.day || newdate.getDay(),
+    time : data.time || newdate.getTime(),
     current_weight : data.current_weight,
-    date : new Date(),
-    day : data.day,
-    time : new Date().getTime(),
+    stretched_before : data.stretched_before,
+    stretched_after : data.stretched_after,
+    stretched_after : data.stretched_after,
     immediate_protein : data.immediate_protein
   });
 
