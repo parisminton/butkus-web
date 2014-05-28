@@ -14,9 +14,26 @@ db.once('open', function () {
 
 trainingBoutSchema = mongoose.Schema({
   current_weight : Number,
-  date : Date,
-  day : String,
-  time : Number,
+  exercises : [
+    {
+      name : String,
+      date : Date,
+      day : Date,
+      time : Date,
+      stretched_before : Boolean,
+      sets : [
+        {
+          weight : Number,
+          reps : Number,
+          rest : Number
+        }
+      ],
+      stretched_after : Boolean,
+      time_limit : Number,
+      elapsed_time : Number,
+      comment : String
+    }
+  ],
   immediate_protein : Boolean
 });
 
@@ -27,13 +44,8 @@ saveBout = function (data) {
   var newdate = new Date();
 
   bout = new TrainingBout ({
-    date : newdate
-    day : data.day || newdate.getDay(),
-    time : data.time || newdate.getTime(),
     current_weight : data.current_weight,
-    stretched_before : data.stretched_before,
-    stretched_after : data.stretched_after,
-    stretched_after : data.stretched_after,
+    exercises : data.exercises,
     immediate_protein : data.immediate_protein
   });
 
