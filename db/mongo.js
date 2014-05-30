@@ -1,8 +1,8 @@
 var mongoose = require('mongoose'),
     db,
-    trainingBoutSchema,
-    TrainingBout,
-    bout,
+    SetSchema,
+    ExerciseSchema,
+    BoutSchema, Bout, bout,
     saveBout;
 
 mongoose.connect('mongodb://localhost/butkus');
@@ -12,40 +12,49 @@ db.once('open', function () {
   console.log('You, sir, are connected to mongo.');
 });
 
-trainingBoutSchema = mongoose.Schema({
+SetSchema = mongoose.Schema({
+  weight : Number,
+  reps : Number,
+  rest : Number,
+  comment : String
+});
+
+ExerciseSchema = mongoose.Schema({
+  name : String,
+  date : Date,
+  day : Date,
+  time : Date,
+  stretched_before : Boolean,
+  sets : [SetSchema],
+  stretched_after : Boolean,
+  time_limit : Number,
+  elapsed_time : Number,
+});
+
+BoutSchema = mongoose.Schema({
   current_weight : Number,
-  exercises : [
-    {
-      name : String,
-      date : Date,
-      day : Date,
-      time : Date,
-      stretched_before : Boolean,
-      sets : [
-        {
-          weight : Number,
-          reps : Number,
-          rest : Number
-        }
-      ],
-      stretched_after : Boolean,
-      time_limit : Number,
-      elapsed_time : Number,
-      comment : String
-    }
-  ],
+  exercises : [ExerciseSchema],
   immediate_protein : Boolean
 });
 
 // create any schema methods before this instantiation
-TrainingBout = mongoose.model('TrainingBout', trainingBoutSchema);
+Set = mongoose.model('Set', SetSchema);
+Exercise = mongoose.model('Exercise', ExerciseSchema);
+Bout = mongoose.model('Bout', BoutSchema);
 
 saveBout = function (data) {
   var newdate = new Date();
 
-  bout = new TrainingBout ({
+  bout = new Bout ({
     current_weight : data.current_weight,
     exercises : data.exercises,
+    /*
+    date : data.date || newdate,
+    day : data.day || newdate.getDay(),
+    time : data.time || newdate.getTime(),
+    stretched_before : data.stretched_before,
+    stretched_after : data.stretched_after,
+    */
     immediate_protein : data.immediate_protein
   });
 
