@@ -1,3 +1,3 @@
-requirejs(["jquery"], function ($) {
-  console.log($('input').attr('name'));
+requirejs(['bigwheel'], function (bW) {
+  console.log(bW.select('#exercise_name option'));
 });
