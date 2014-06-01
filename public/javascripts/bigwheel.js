@@ -23,20 +23,28 @@
     function filterNodeList (list, getter, filter) {
       var i,
           len = list.length,
+          nodes,
           filtered_nodes = []; 
 
       function parseNodes (nlist) {
-        var j = 0,
+        var j,
             nlen = nlist.length;
 
-        for (j; j < nlen; j += 1 ) {
+        for (j = 0; j < nlen; j += 1 ) {
           filtered_nodes.push(nlist[j]);
         }
         
       } // end parseNodes
 
       for (i = 0; i < len; i += 1) {
-        parseNodes(list[i][getter](filter));
+        nodes = list[i][getter](filter);
+
+        if (typeof nodes === 'object') {
+          filtered_nodes.push(nodes);
+        }
+        else {
+          parseNodes(nodes);
+        }
       }
 
       scope = filtered_nodes;
@@ -75,12 +83,12 @@
         console.log('The lead is ' + leads[i] + '.');
         console.log('The name is ' + names[i] + '.');
 
-        if (i != (len - 1)) {
-          if (typeof scope === 'object') {
-            scope = [scope];
-          }
-          filterNodeList(scope, getter, names[i]);
+        // put singular DOM references, but not NodeLists, in an array
+        if (!Array.isArray(scope)) {
+          scope = [scope];
         }
+        filterNodeList(scope, getter, names[i]);
+
       } // end leads/names loop
 
     } // end selectFromString
