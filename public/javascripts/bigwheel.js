@@ -60,7 +60,8 @@
         for (i = 0; i < len; i += 1) {
           nodes = list[i][getter](filter);
 
-          if (nodes.constructor === HTMLCollection) {
+          if (nodes.constructor === HTMLCollection ||
+              nodes.constructor === NodeList) {
             parseNodes(nodes);
           }
           else {
