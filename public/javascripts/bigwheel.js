@@ -1,5 +1,5 @@
 /* 
- * > bigwheel.js 0.2.1 <
+ * > bigwheel.js 0.2.2 <
  *
  * My go-to JavaScript functions.
  * 
@@ -11,20 +11,19 @@
 
   var bW = (typeof window.bW === 'object') ? window.bW : {};
 
-  // ### event handler helpers
-
+  // ### selector engine
+  //
   bW.select = function (selector) {
     var elements = [],
-        bWObj = {},
+        bWObj = { selector: selector },
         scope = document,
         getter;
 
-    function filterNodeList (list, getter, filter) {
+    function filterHTMLCollection (list, getter, filter) {
       var i,
           len = list.length,
           nodes,
           filtered_nodes = []; 
-
 
       function storeUniques (list) {
         var i,
@@ -42,7 +41,6 @@
         return uniques;
       } // end storeUniques
 
-
       function parseNodes (list) {
         var i,
             len = list.length;
@@ -51,7 +49,6 @@
           filtered_nodes.push(list[i]);
         }
       } // end parseNodes
-
 
       function drillDown (list) {
         var i,
@@ -70,7 +67,6 @@
         }
       } // end drillDown
 
-
       function matchSpecifier (list) {
         var i,
             len = list.length,
@@ -86,7 +82,6 @@
         }
       } // end matchSpecifier
 
-
       if (/className|id/.test(getter)) {
         matchSpecifier(list);
       }
@@ -96,8 +91,7 @@
 
       scope = storeUniques(filtered_nodes);
       return scope;
-
-    } // end filterNodeList
+    } // end filterHTMLCollection
 
     function selectFromString () {
       var tokens = selector.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
@@ -116,9 +110,6 @@
       if (tokens.length < flags.length) {
         tokens.unshift('tagname');
       }
-
-      console.log(tokens);
-      console.log(flags);
 
       for (i = 0; i < len; i += 1) {
 
@@ -142,15 +133,12 @@
           getter = 'id';
         }
 
-        console.log('The token is ' + tokens[i] + '.');
-        console.log('The flag is ' + flags[i] + '.');
-
-        // put singular DOM references, but not NodeLists, in an array
-        // filterNodeList always stores its results in a true array
+        // put singular DOM references, but not HTMLCollections, in an array
+        // filterHTMLCollection always stores its results in a true array
         if (typeof scope.length === 'undefined') {
           scope = [scope];
         }
-        filterNodeList(scope, getter, flags[i]);
+        filterHTMLCollection(scope, getter, flags[i]);
 
       } // end tokens/flags loop
 
@@ -159,8 +147,28 @@
     if (typeof selector === 'string') {
       selectFromString();
     }
+
+    function Bigwheel (selector, elements) {
+      this.selector = selector;
+      elements.forEach(function (elem, ndx) {
+        // methods need to apply these elements
+        this[ndx] = elem[ndx];
+      });
+    }
+
+    Bigwheel.prototype = {
+      event_registry : { count : 0 },
+      listenFor : function () {},
+      stopListening : function () {}
+    }
+
+
     return scope;
   } // end bW core selector
+
+
+
+  // ### event handler helpers
 
   bW.event_registry = {
     count : 0
