@@ -4,6 +4,12 @@ butkus-web
 Changelog
 ---------
 
+*6/15/14*
+
+1. Bigwheel becomes a function.
+
+
+
 *5/31/14*
 
 1. Sets and exercises become sub-schemas.
