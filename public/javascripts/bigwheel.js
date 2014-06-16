@@ -147,10 +147,12 @@
     }
 
     function Bigwheel (elements) {
-      this.selector = selector;
+      var instance = this;
+
+      instance.selector = selector;
       elements.forEach(function (elem, ndx) {
         // methods need to apply these elements
-        this[ndx] = elem[ndx];
+        instance[ndx] = elem;
       });
     }
 
@@ -162,24 +164,24 @@
         
         // W3C-compliant browsers
         if (elem.addEventListener) {
-          if (!this.listener_model) { this.listener_model = "addEventListener"; }
+          if (!this.listener_model) { this.listener_model = 'addEventListener'; }
           elem.addEventListener(evt, func, capt);
         }
         // IE pre-9
         else {
           if (elem.attachEvent) { 
-            if (!this.listener_model) { this.listener_model = "attachEvent"; }
-            elem.attachEvent(("on" + evt), func);
+            if (!this.listener_model) { this.listener_model = 'attachEvent'; }
+            elem.attachEvent(('on' + evt), func);
           }
           // fall back to DOM level 0
           else { 
-            if (!this.listener_model) { this.listener_model = "onevent"; }
-            elem["on" + evt] = func;
+            if (!this.listener_model) { this.listener_model = 'onevent'; }
+            elem['on' + evt] = func;
           }
         }
         
         // store these values in a registry, so we can retrieve them
-        proc_id = ("process" + (this.registry.count + 1)); // unique id
+        proc_id = ('process' + (this.registry.count + 1)); // unique id
         this.registry[proc_id] = {};
         this.registry[proc_id].elem = elem;
         this.registry[proc_id].evt = evt;
@@ -220,4 +222,4 @@
 
 }());
 
-console.log("I can take you there. Just follow me.");
+console.log('I can take you there. Just follow me.');
