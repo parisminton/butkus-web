@@ -14,8 +14,7 @@
 
     // ### bW selector engine and constructor ###
     var scope = document,
-        getter,
-        instance;
+        getter;
 
     function filterHTMLCollection (list, getter, filter) {
       var i,
@@ -149,11 +148,13 @@
     function Bigwheel (elements) {
       var instance = this;
 
-      instance.selector = selector;
       elements.forEach(function (elem, ndx) {
         // methods need to apply these elements
         instance[ndx] = elem;
+        instance.length = (ndx + 1);
       });
+      
+      instance.selector = selector;
     }
 
     Bigwheel.prototype = {

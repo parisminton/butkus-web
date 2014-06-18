@@ -1,2 +1,4 @@
+.gitignore
 *.swp
 workshop
+public/javascripts/old_bigwheel.js
