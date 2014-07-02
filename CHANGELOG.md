@@ -4,6 +4,18 @@ butkus-web
 Changelog
 ---------
 
+*7/2/14*
+
+1. Log view collects data in a BUTKUS object.
+
+
+
+*7/1/14*
+
+1. Hitting the 'Add a set' button reveals a new set sub-form.
+
+
+
 *6/15/14*
 
 1. Bigwheel becomes a function.

@@ -1,18 +1,37 @@
 requirejs(['bigwheel'], function (bW) {
-  var add_set_button = bW('#addset'),
-      add_button = document.getElementById('addset');
-      exercise_fieldset = bW('.exercise');
-      exercise_field = document.getElementsByTagName('fieldset')[0];
+  var BUTKUS = BUTKUS || {
+        user : {},
+        session : {}
+      },
+      next_button = bW('#starttimer');
+      add_set_button = bW('#addset');
 
-  function addNewSet () {
+  // a bout is created when the user hits one of the 'start logging' buttons.
+  function addBout () {
+    BUTKUS.bout = BUTKUS.bout || {};
+  }
+
+  function addCurrentWeight () {
+    BUTKUS.bout = BUTKUS.bout || {};
+
+    BUTKUS.bout.current_weight = bW('#current_weight').val();
+  }
+
+  function addSetData () {
+  }
+
+  function validateCurrentSetData () {
+  }
+
+  function addSet () {
     var container = document.createDocumentFragment(),
-        set_string,
+        template_string,
         si = 1 /* set index | get current set length */,
         fieldset = document.createElement('fieldset');
 
     fieldset.className = 'set' + si;
 
-    set_string =
+    template_string =
     '<legend>Set ' + (si + 1) + '</legend>' + 
     '<div class="field">' + 
       '<label for="set' + si + '_weight">Weight</label>' + 
@@ -31,11 +50,10 @@ requirejs(['bigwheel'], function (bW) {
       '<textarea name="set' + si + '_comment" id="set' + si + '_comment"></textarea>' + 
     '</div>';
     
-    fieldset.innerHTML = set_string;
+    fieldset.innerHTML = template_string;
     add_set_button.before(fieldset);
-    // add_button.parentNode.insertBefore(container, add_button);
-    // exercise_field.appendChild(container);
   }
 
-  add_set_button.listenFor('click', addNewSet, true);
+  add_set_button.listenFor('click', addSet, true);
+  next_button.listenFor('click', addCurrentWeight, true);
 });

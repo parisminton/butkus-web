@@ -116,6 +116,7 @@
 
         if (/^#|\s+#/.test(tokens[i])) {
           getter = 'getElementById';
+          scope = document;
         }
 
         if (/tagname|\s+/.test(tokens[i]) && !/\.|#/.test(tokens[i])) {
@@ -183,6 +184,30 @@
 
         return this;
       }, // end bW.all
+
+      first : function (func, args) {
+        var args_array = [],
+            i;
+
+        // copy everything to args_array
+        // args, ^above^, should be an array-like object. if not, convert it.
+        if (!args.length) {
+          for (i = 1; i < arguments.length; i += 1) {
+            args_array.push(arguments[i]);
+          }
+        }
+        else {
+          for (i = 0; i < args.length; i += 1) {
+            args_array.push(args[i]);
+          }
+        }
+
+        args_array.unshift(this[0]);
+        func.apply(this, args_array);
+        args_array.shift();
+
+        return this; // ### TODO: return first element wrapped in bW wrapper ###
+      }, // end bW.first
 
       event_registry : { length : 0 },
 
@@ -259,7 +284,19 @@
         }
 
         return this.all(insert, arguments);
-      } // end bW.before
+      }, // end bW.before
+
+      after : function (elem) {
+        function insert (before, elem) {
+          before.parentNode.insertBefore(elem, before.nextSibling);
+        }
+
+        return this.all(insert, arguments);
+      }, // end bW.after
+
+      val : function () { // returns a value, not the bW object
+        if (this[0].value) { return this[0].value; }
+      } // end bW.val
 
     } // end Bigwheel prototype
 
