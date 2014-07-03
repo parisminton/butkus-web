@@ -93,22 +93,22 @@
     function selectFromString () {
       var tokens = selector.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
           flags = selector.split(/\s+|\.|#/g) || [],
+          filtered = [],
           i, len;
       
       // remove any empty strings Array.split might have added
-      flags = flags.filter(function (item) {
-        if (item.length > 0) {
-          return item;
+      for (i = 0; i < flags.length; i += 1) {
+        if (flags[i].length) {
+          filtered.push(flags[i]);
         }
-      }); // end flags.filter
-
-      len = flags.length;
+      }
+      flags = filtered;
 
       if (tokens.length < flags.length) {
         tokens.unshift('tagname');
       }
 
-      for (i = 0; i < len; i += 1) {
+      for (i = 0; i < flags.length; i += 1) {
 
         if (/^\.|\s+\./.test(tokens[i])) {
           getter = 'getElementsByClassName';
@@ -147,18 +147,25 @@
     }
 
     function Bigwheel (elements) {
-      var instance = this;
+      var instance = this,
+          i,
+          len = elements.length;
 
-      elements.forEach(function (elem, ndx) {
-        // methods need to apply these elements
-        instance[ndx] = elem;
-        instance.length = (ndx + 1);
-      });
+      for (i = 0; i < len; i += 1) {
+        instance[i] = elements[i];
+        instance.length = (i + 1);
+      }
       
       instance.selector = selector;
     } // end Bigwheel constructor
 
     Bigwheel.prototype = {
+
+      // ### PROPERTIES
+      event_registry : { length : 0 },
+
+
+      // ### HELPERS: will probably be most useful to other bW methods, not users.
       all : function (func, args) {
         var args_array = [],
             i;
@@ -209,7 +216,37 @@
         return this; // ### TODO: return first element wrapped in bW wrapper ###
       }, // end bW.first
 
-      event_registry : { length : 0 },
+      parseArray : function () {
+        var args = [],
+            filtered = [],
+            i,
+            len = arguments.length;
+
+        if (len > 1) {
+          for (i = 0; i < len; i += 1) {
+            if (typeof arguments[i] === 'string') {
+              args.push(arguments[i]);
+            }
+          }
+        }
+        else {
+          if (typeof arguments[0] === 'object') {
+            for (key in arguments[0]) {
+              args.push(arguments[0][key]);
+            }
+          }
+          else if (typeof arguments[0] === 'string') {
+            args = arguments[0].split(/[,\s+|\s+|,]/);
+
+            // remove any empty strings Array.split might have added
+            for (i = 0; i < args.length; i += 1) {
+              if (args[i].length) { filtered.push(args[i]); }
+            }
+            args = filtered;
+          }
+        }
+        return args;
+      }, // end bW.parseArray
 
       css : function (prop, value) {
         if (!prop) { return this; }
@@ -220,6 +257,79 @@
 
         return this.all(setCSS, arguments);
       }, // end bW.css
+
+      addClass : function () {
+        var args = this.parseArray(arguments);
+
+        function setClass (elem) {
+          var addl_classes = [],
+              class_list,
+              i,
+              len;
+
+          // we don't know how many arguments we may get here
+          for (i = 1; i < arguments.length; i += 1) {
+            addl_classes.push(arguments[i]);
+          }
+
+          len = addl_classes.length;
+
+          if (elem.classList) {
+            for (i = 0; i < len; i += 1) {
+              elem.classList.add(addl_classes[i]);
+            }
+          }
+          else {
+            class_list = elem.className.split(' ');
+            for (i = 0; i < len; i += 1) {
+              class_list.push(addl_classes[i]);
+            }
+            elem.className = class_list.join(' ');
+          }
+        } // end setClass
+
+        return this.all(setClass, args);
+      }, // end bW.addClass
+
+      removeClass : function () {
+        var args = this.parseArray(arguments);
+
+        function setClass (elem) {
+          var retiring_classes = [],
+              retire,
+              class_list,
+              i,
+              j,
+              len;
+
+          // we don't know how many arguments we may get here
+          for (i = 1; i < arguments.length; i += 1) {
+            retiring_classes.push(arguments[i]);
+          }
+
+          len = retiring_classes.length;
+
+          if (elem.classList) {
+            for (i = 0; i < len; i += 1) {
+              elem.classList.remove(retiring_classes[i]);
+            }
+          }
+          else {
+            class_list = elem.className.split(' ');
+            for (i = 0; i < len; i += 1) {
+              retire = new RegExp(retiring_classes[i]);
+              for (j = 0; j < class_list.length; j += 1) {
+                if (retire.test(class_list[j])) {
+                  class_list.splice(j, 1);
+                }
+              }
+            }
+            elem.className = class_list.join(' ');
+          }
+        } // end setClass
+
+        return this.all(setClass, args);
+      }, // end bW.removeClass
 
       listenFor : function (evt, func, capt, aargs) {
 

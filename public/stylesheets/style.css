@@ -1,7 +1,13 @@
 body {
   padding: 50px;
-  font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 14px "adelle-sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 a {
   color: #00b7ff;
+}
+.phase {
+  display: none;
+}
+.phase.visible {
+  display: block;
 }

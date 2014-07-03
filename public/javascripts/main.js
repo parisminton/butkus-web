@@ -3,7 +3,8 @@ requirejs(['bigwheel'], function (bW) {
         user : {},
         session : {}
       },
-      next_button = bW('#starttimer');
+      form_state = ['start', 'setup', 'exercise', 'post'],
+      next_button = bW('#next');
       add_set_button = bW('#addset');
 
   // a bout is created when the user hits one of the 'start logging' buttons.
@@ -21,6 +22,10 @@ requirejs(['bigwheel'], function (bW) {
   }
 
   function validateCurrentSetData () {
+  }
+
+  function testRemoveClass () {
+    bW('section').removeClass('phase');
   }
 
   function addSet () {
@@ -56,4 +61,7 @@ requirejs(['bigwheel'], function (bW) {
 
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', addCurrentWeight, true);
+  bW('#logprevious').listenFor('click', testRemoveClass, true);
+  bW('section').addClass('cameroon', 'ghana', 'ethiopia');
+  bW('.phase.visible').css('border', '1px solid red');
 });
