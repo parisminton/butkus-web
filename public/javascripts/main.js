@@ -3,9 +3,31 @@ requirejs(['bigwheel'], function (bW) {
         user : {},
         session : {}
       },
-      form_state = ['start', 'setup', 'exercise', 'post'],
-      next_button = bW('#next');
+
+      form_state = {
+        phases : ['start', 'setup', 'exercise', 'post'],
+        current : 'start',
+        current_ndx : 0
+      },
+
+      form = bW('#log'),
+      next_button = bW('#next'),
       add_set_button = bW('#addset');
+
+  function formAdvance () {
+    form_state.current_ndx += 1;
+    if (form_state.current_ndx >= form_state.phases.length) {
+      form_state.current_ndx = 0;
+    }
+    form_state.current = form_state.phases[form_state.current_ndx];
+    form.data('phase', form_state.current);
+  }
+
+  function showCurrentFormPhase () {
+    formAdvance();
+    bW('.current').removeClass('current');
+    bW('.phase.' + form_state.current).addClass('current');
+  }
 
   // a bout is created when the user hits one of the 'start logging' buttons.
   function addBout () {
@@ -60,8 +82,5 @@ requirejs(['bigwheel'], function (bW) {
   }
 
   add_set_button.listenFor('click', addSet, true);
-  next_button.listenFor('click', addCurrentWeight, true);
-  bW('#logprevious').listenFor('click', testRemoveClass, true);
-  bW('section').addClass('cameroon', 'ghana', 'ethiopia');
-  bW('.phase.visible').css('border', '1px solid red');
+  next_button.listenFor('click', showCurrentFormPhase, true);
 });

@@ -8,6 +8,6 @@ a {
 .phase {
   display: none;
 }
-.phase.visible {
+.phase.current {
   display: block;
 }

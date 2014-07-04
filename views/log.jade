@@ -3,8 +3,8 @@ extends layout
 block content
   h1 Tell me about your round of training.
 
-  form(method="post", data-phase="start")
-    section.phase.start.visible
+  form#log(method="post", data-phase="start")
+    section.phase.start.current
       div#startnow.button
         p Starting right now. I'll log results as I go.
 
