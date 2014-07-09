@@ -4,6 +4,12 @@ butkus-web
 Changelog
 ---------
 
+*7/4/14*
+
+1. 'Next' button steps through log form.
+
+
+
 *7/2/14*
 
 1. Log view collects data in a BUTKUS object.

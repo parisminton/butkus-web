@@ -3,15 +3,15 @@ extends layout
 block content
   h1 Tell me about your round of training.
 
-  form#log(method="post", data-phase="start")
-    section.phase.start.current
+  form#log(method="post", data-currentphase="start")
+    section.phase.start.current(data-phase='{"0":"start"}')
       div#startnow.button
         p Starting right now. I'll log results as I go.
 
       div#logprevious.button
         p I'm logging a previous training round.
 
-    section.phase.setup
+    section.phase.setup(data-phase='{"1":"setup"}')
       div.field
         label(for='current_weight') How much do you weigh?
         input(type='text', name='current_weight', id='current_weight')
@@ -35,7 +35,7 @@ block content
         label(for='time') Time
         input(type='text', name='time', id='time')
         
-    section.phase.exercise
+    section.phase.exercise(data-phase='{"2":"exercise"}')
       div.field
         label(for='exercise_name') Which exercise are you doing?
         select(name='exercise_name', id='exercise_name')
@@ -89,7 +89,7 @@ block content
       div#addexercise.button
         p Add an exercise.
 
-    section.phase.post
+    section.phase.post(data-phase='{"3":"post"}')
       div.field
         label(for='immediate_protein') Immediate protein
         select(name='immediate_protein', id='immediate_protein')

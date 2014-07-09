@@ -5,16 +5,29 @@ requirejs(['bigwheel'], function (bW) {
       },
 
       form_state = {
-        phases : ['start', 'setup', 'exercise', 'post'],
-        current : 'start',
-        current_ndx : 0
+        phases : [],
+        current_ndx : 0,
+        init : function () {
+          var phases = form.find('.phase'),
+              i,
+              obj;
+
+          for (i = 0; i < phases.length; i += 1) {
+            obj = JSON.parse(bW(phases[i]).data('phase'));
+            for (key in obj) {
+              this.phases[key] = obj[key];
+            }
+          }
+          this.current = this.phases[0];
+        }
       },
 
       form = bW('#log'),
       next_button = bW('#next'),
-      add_set_button = bW('#addset');
+      add_set_button = bW('#addset'),
+      form_phases;
 
-  function formAdvance () {
+  function advanceForm () {
     form_state.current_ndx += 1;
     if (form_state.current_ndx >= form_state.phases.length) {
       form_state.current_ndx = 0;
@@ -24,7 +37,7 @@ requirejs(['bigwheel'], function (bW) {
   }
 
   function showCurrentFormPhase () {
-    formAdvance();
+    advanceForm();
     bW('.current').removeClass('current');
     bW('.phase.' + form_state.current).addClass('current');
   }
@@ -83,4 +96,5 @@ requirejs(['bigwheel'], function (bW) {
 
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', showCurrentFormPhase, true);
+  form_state.init();
 });

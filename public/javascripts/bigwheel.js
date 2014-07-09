@@ -1,5 +1,5 @@
 /* 
- * > bigwheel.js 0.2.2 <
+ * > bigwheel.js 0.3.0 <
  *
  * My go-to JavaScript functions.
  * 
@@ -12,138 +12,147 @@
   var bW = (typeof window.bW === 'function') ? window.bW : function (selector) {
 
     // ### bW selector engine and constructor ###
-    var scope = document,
-        getter;
+    function selectElements (selectr, scope) {
+      var getter;
 
-    function filterHTMLCollection (list, getter, filter) {
-      var i,
-          len = list.length,
-          nodes,
-          filtered_nodes = []; 
+      scope = scope || document;
 
-      function storeUniques (list) {
+      function filterHTMLCollection (list, getter, filter) {
         var i,
             len = list.length,
-            uniques = [];
+            nodes,
+            filtered_nodes = []; 
 
-        for (i = 0; i < len; i += 1) {
-          if (uniques.some(function (u) {
-              return u === list[i];
-            })) {
-            continue;
+        function storeUniques (list) {
+          var i,
+              len = list.length,
+              uniques = [];
+
+          for (i = 0; i < len; i += 1) {
+            if (uniques.some(function (u) {
+                return u === list[i];
+              })) {
+              continue;
+            }
+            uniques.push(list[i]);
           }
-          uniques.push(list[i]);
-        }
-        return uniques;
-      } // end storeUniques
+          return uniques;
+        } // end storeUniques
 
-      function parseNodes (list) {
-        var i,
-            len = list.length;
+        function parseNodes (list) {
+          var i,
+              len = list.length;
 
-        for (i = 0; i < len; i += 1 ) {
-          filtered_nodes.push(list[i]);
-        }
-      } // end parseNodes
-
-      function drillDown (list) {
-        var i,
-            len = list.length;
-
-        for (i = 0; i < len; i += 1) {
-          nodes = list[i][getter](filter);
-
-          if (nodes.constructor === HTMLCollection ||
-              nodes.constructor === NodeList) {
-            parseNodes(nodes);
-          }
-          else {
-            filtered_nodes.push(nodes);
-          }
-        }
-      } // end drillDown
-
-      function matchSpecifier (list) {
-        var i,
-            len = list.length,
-            specifier,
-            rx = new RegExp(filter);
-
-        for (i = 0; i < len; i += 1) {
-          specifier = list[i][getter];
-
-          if (rx.test(specifier)) {
+          for (i = 0; i < len; i += 1 ) {
             filtered_nodes.push(list[i]);
           }
+        } // end parseNodes
+
+        function drillDown (list) {
+          var i,
+              len = list.length;
+
+          for (i = 0; i < len; i += 1) {
+            nodes = list[i][getter](filter);
+
+            if (nodes.constructor === HTMLCollection ||
+                nodes.constructor === NodeList) {
+              parseNodes(nodes);
+            }
+            else {
+              filtered_nodes.push(nodes);
+            }
+          }
+        } // end drillDown
+
+        function matchSpecifier (list) {
+          var i,
+              len = list.length,
+              specifier,
+              rx = new RegExp(filter);
+
+          for (i = 0; i < len; i += 1) {
+            specifier = list[i][getter];
+
+            if (rx.test(specifier)) {
+              filtered_nodes.push(list[i]);
+            }
+          }
+        } // end matchSpecifier
+
+        if (/className|id/.test(getter)) {
+          matchSpecifier(list);
         }
-      } // end matchSpecifier
+        else {
+          drillDown(list);
+        }
 
-      if (/className|id/.test(getter)) {
-        matchSpecifier(list);
+        scope = storeUniques(filtered_nodes);
+        return scope;
+      } // end filterHTMLCollection
+
+      function selectFromString (slctr) {
+        var tokens = slctr.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
+            flags = slctr.split(/\s+|\.|#/g) || [],
+            filtered = [],
+            i, len;
+        
+        // remove any empty strings Array.split might have added
+        for (i = 0; i < flags.length; i += 1) {
+          if (flags[i].length) {
+            filtered.push(flags[i]);
+          }
+        }
+        flags = filtered;
+
+        if (tokens.length < flags.length) {
+          tokens.unshift('tagname');
+        }
+
+        for (i = 0; i < flags.length; i += 1) {
+
+          if (/^\.|\s+\./.test(tokens[i])) {
+            getter = 'getElementsByClassName';
+          }
+
+          if (/^#|\s+#/.test(tokens[i])) {
+            getter = 'getElementById';
+            scope = document;
+          }
+
+          if (/tagname|\s+/.test(tokens[i]) && !/\.|#/.test(tokens[i])) {
+            getter = 'getElementsByTagName';
+          }
+
+          if (/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]/.test(tokens[i])) {
+            getter = 'className';
+          }
+
+          if (/[a-zA-Z0-9_-]#[a-zA-Z0-9_-]/.test(tokens[i])) {
+            getter = 'id';
+          }
+
+          // put singular DOM references, but not HTMLCollections, in an array
+          // filterHTMLCollection always stores its results in a true array
+          if (typeof scope.length === 'undefined') {
+            scope = [scope];
+          }
+          filterHTMLCollection(scope, getter, flags[i]);
+
+        } // end tokens/flags loop
+
+      } // end selectFromString
+
+      if (typeof selectr === 'string') {
+        selectFromString(selectr);
       }
-      else {
-        drillDown(list);
+      else if (/HTML/.test(selectr.constructor.toString())) {
+        if (!selectr.length) { selectr = [selectr] };
+        scope = selectr;
       }
 
-      scope = storeUniques(filtered_nodes);
       return scope;
-    } // end filterHTMLCollection
-
-    function selectFromString () {
-      var tokens = selector.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
-          flags = selector.split(/\s+|\.|#/g) || [],
-          filtered = [],
-          i, len;
-      
-      // remove any empty strings Array.split might have added
-      for (i = 0; i < flags.length; i += 1) {
-        if (flags[i].length) {
-          filtered.push(flags[i]);
-        }
-      }
-      flags = filtered;
-
-      if (tokens.length < flags.length) {
-        tokens.unshift('tagname');
-      }
-
-      for (i = 0; i < flags.length; i += 1) {
-
-        if (/^\.|\s+\./.test(tokens[i])) {
-          getter = 'getElementsByClassName';
-        }
-
-        if (/^#|\s+#/.test(tokens[i])) {
-          getter = 'getElementById';
-          scope = document;
-        }
-
-        if (/tagname|\s+/.test(tokens[i]) && !/\.|#/.test(tokens[i])) {
-          getter = 'getElementsByTagName';
-        }
-
-        if (/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]/.test(tokens[i])) {
-          getter = 'className';
-        }
-
-        if (/[a-zA-Z0-9_-]#[a-zA-Z0-9_-]/.test(tokens[i])) {
-          getter = 'id';
-        }
-
-        // put singular DOM references, but not HTMLCollections, in an array
-        // filterHTMLCollection always stores its results in a true array
-        if (typeof scope.length === 'undefined') {
-          scope = [scope];
-        }
-        filterHTMLCollection(scope, getter, flags[i]);
-
-      } // end tokens/flags loop
-
-    } // end selectFromString
-
-    if (typeof selector === 'string') {
-      selectFromString();
-    }
+    } // end selectElements
 
     function Bigwheel (elements) {
       var instance = this,
@@ -154,8 +163,6 @@
         instance[i] = elements[i];
         instance.length = (i + 1);
       }
-      
-      instance.selector = selector;
     } // end Bigwheel constructor
 
     Bigwheel.prototype = {
@@ -165,6 +172,19 @@
 
 
       // ### HELPERS: will probably be most useful to other bW methods, not users.
+      wrap : function (elem_refs) {
+        var args_array = [],
+            i;
+
+        if (!elem_refs.length && /HTML/.test(elem_refs.constructor.toString())) {
+          elem_refs = [elem_refs];
+        }
+
+        if (elem_refs.length) {
+          return new Bigwheel(elem_refs);
+        }
+      }, // end bW.wrap
+
       all : function (func, args) {
         var args_array = [],
             i;
@@ -191,28 +211,8 @@
         return this;
       }, // end bW.all
 
-      first : function (func, args) {
-        var args_array = [],
-            i;
-
-        // copy everything to args_array
-        // args, ^above^, should be an array-like object. if not, convert it.
-        if (!args.length) {
-          for (i = 1; i < arguments.length; i += 1) {
-            args_array.push(arguments[i]);
-          }
-        }
-        else {
-          for (i = 0; i < args.length; i += 1) {
-            args_array.push(args[i]);
-          }
-        }
-
-        args_array.unshift(this[0]);
-        func.apply(this, args_array);
-        args_array.shift();
-
-        return this; // ### TODO: return first element wrapped in bW wrapper ###
+      first : function () {
+        return this.wrap(this[0]);
       }, // end bW.first
 
       parseArray : function () {
@@ -247,6 +247,7 @@
         return args;
       }, // end bW.parseArray
 
+      // ### METHODS THAT OPERATE ON ALL ELEMENTS IN THE SET and return the bW object
       css : function (prop, value) {
         if (!prop) { return this; }
 
@@ -403,7 +404,7 @@
         return this.all(insert, arguments);
       }, // end bW.after
 
-      // ### METHODS that return values from a single element, not the bW object
+      // ### METHODS THAT RETURN A VALUE from a single element, not the bW object
       val : function () {
         if (this[0].value) { return this[0].value; }
       }, // end bW.val
@@ -439,11 +440,24 @@
           setData(selector, new_value);
           return this;
         }
-      } // end bW.data
+      }, // end bW.data
+
+      find : function (slctr) {
+        var collection = [],
+            i,
+            new_scope;
+
+        for (i = 0; i < this.length; i += 1) {
+          collection.push(this[i]);
+        }
+
+        new_scope = selectElements(slctr, collection);
+        return new Bigwheel(new_scope);
+      } // end bW.find
 
     } // end Bigwheel prototype
 
-    return new Bigwheel(scope);
+    return new Bigwheel(selectElements(selector));
 
   }; // end bW selector engine and constructor
 
