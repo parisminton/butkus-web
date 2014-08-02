@@ -4,6 +4,12 @@ butkus-web
 Changelog
 ---------
 
+*8/2/14*
+
+1. Submit button scans and stores values for all form fields.
+
+
+
 *7/4/14*
 
 1. 'Next' button steps through log form.

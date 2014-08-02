@@ -11,6 +11,8 @@
 
   var bW = (typeof window.bW === 'function') ? window.bW : function (selector) {
 
+    bW.forms = bW.forms || [];
+
     // ### bW selector engine and constructor ###
     function selectElements (selectr, scope) {
       var getter;
@@ -92,54 +94,77 @@
       } // end filterHTMLCollection
 
       function selectFromString (slctr) {
-        var tokens = slctr.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
-            flags = slctr.split(/\s+|\.|#/g) || [],
-            filtered = [],
-            i, len;
-        
-        // remove any empty strings Array.split might have added
-        for (i = 0; i < flags.length; i += 1) {
-          if (flags[i].length) {
-            filtered.push(flags[i]);
+        var slctr_array = slctr.split(','),
+            parsed = [],
+            i,
+            j;
+
+        function select (s) {
+          var tokens = s.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
+              flags = s.split(/\s+|\.|#/g) || [],
+              filtered = [],
+              i;
+          
+          // remove any empty strings Array.split might have added
+          for (i = 0; i < flags.length; i += 1) {
+            if (flags[i].length) {
+              filtered.push(flags[i]);
+            }
           }
+          flags = filtered;
+
+          if (tokens.length < flags.length) {
+            tokens.unshift('tagname');
+          }
+
+          for (i = 0; i < flags.length; i += 1) {
+
+            if (/^\.|\s+\./.test(tokens[i])) {
+              getter = 'getElementsByClassName';
+            }
+
+            if (/^#|\s+#/.test(tokens[i])) {
+              getter = 'getElementById';
+              scope = document;
+            }
+
+            if (/tagname|\s+/.test(tokens[i]) && !/\.|#/.test(tokens[i])) {
+              getter = 'getElementsByTagName';
+            }
+
+            if (/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]/.test(tokens[i])) {
+              getter = 'className';
+            }
+
+            if (/[a-zA-Z0-9_-]#[a-zA-Z0-9_-]/.test(tokens[i])) {
+              getter = 'id';
+            }
+
+            // put singular DOM references, but not HTMLCollections, in an array
+            // filterHTMLCollection always stores its results in a true array
+            if (typeof scope.length === 'undefined') {
+              scope = [scope];
+            }
+            filterHTMLCollection(scope, getter, flags[i]);
+
+          } // end tokens/flags loop
+
+        } // end select
+
+        if (slctr_array.length > 1) {
+          for (i = 0; i < slctr_array.length; i += 1) {
+            scope = document; // needs resetting for each call
+            select(slctr_array[i].replace(/^\s+/, ''));
+            // scope is always an array at this point. we just want its members.
+            for (j = 0; j < scope.length; j += 1) {
+              parsed.push(scope[j]);
+            }
+          }
+          scope = parsed;
         }
-        flags = filtered;
-
-        if (tokens.length < flags.length) {
-          tokens.unshift('tagname');
+        else {
+          select(slctr_array[0]);
         }
-
-        for (i = 0; i < flags.length; i += 1) {
-
-          if (/^\.|\s+\./.test(tokens[i])) {
-            getter = 'getElementsByClassName';
-          }
-
-          if (/^#|\s+#/.test(tokens[i])) {
-            getter = 'getElementById';
-            scope = document;
-          }
-
-          if (/tagname|\s+/.test(tokens[i]) && !/\.|#/.test(tokens[i])) {
-            getter = 'getElementsByTagName';
-          }
-
-          if (/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]/.test(tokens[i])) {
-            getter = 'className';
-          }
-
-          if (/[a-zA-Z0-9_-]#[a-zA-Z0-9_-]/.test(tokens[i])) {
-            getter = 'id';
-          }
-
-          // put singular DOM references, but not HTMLCollections, in an array
-          // filterHTMLCollection always stores its results in a true array
-          if (typeof scope.length === 'undefined') {
-            scope = [scope];
-          }
-          filterHTMLCollection(scope, getter, flags[i]);
-
-        } // end tokens/flags loop
 
       } // end selectFromString
 
@@ -154,22 +179,141 @@
       return scope;
     } // end selectElements
 
+    function plusClass (elem) {
+      var addl_classes = [],
+          class_list,
+          i,
+          len;
+
+      // we don't know how many arguments we may get here
+      for (i = 1; i < arguments.length; i += 1) {
+        addl_classes.push(arguments[i]);
+      }
+
+      len = addl_classes.length;
+
+      if (elem.classList) {
+        for (i = 0; i < len; i += 1) {
+          elem.classList.add(addl_classes[i]);
+        }
+      }
+      else {
+        class_list = elem.className.split(' ');
+        for (i = 0; i < len; i += 1) {
+          class_list.push(addl_classes[i]);
+        }
+        elem.className = class_list.join(' ');
+      }
+    } // end plusClass
+
+    function minusClass (elem) {
+      var retiring_classes = [],
+          retire,
+          class_list,
+          i,
+          j,
+          len;
+
+      // we don't know how many arguments we may get here
+      for (i = 1; i < arguments.length; i += 1) {
+        retiring_classes.push(arguments[i]);
+      }
+
+      len = retiring_classes.length;
+
+      if (elem.classList) {
+        for (i = 0; i < len; i += 1) {
+          elem.classList.remove(retiring_classes[i]);
+        }
+      }
+      else {
+        class_list = elem.className.split(' ');
+        for (i = 0; i < len; i += 1) {
+          retire = new RegExp(retiring_classes[i]);
+          for (j = 0; j < class_list.length; j += 1) {
+            if (retire.test(class_list[j])) {
+              class_list.splice(j, 1);
+            }
+          }
+        }
+        elem.className = class_list.join(' ');
+      }
+    } // end minusClass
+
+    function parseArray () {
+      var args = [],
+          filtered = [],
+          i,
+          key,
+          len = arguments.length;
+
+      if (len > 1) {
+        for (i = 0; i < len; i += 1) {
+          if (typeof arguments[i] === 'string') {
+            args.push(arguments[i]);
+          }
+        }
+      }
+      else {
+        if (typeof arguments[0] === 'object') {
+          for (key in arguments[0]) {
+            args.push(arguments[0][key]);
+          }
+        }
+        else if (typeof arguments[0] === 'string') {
+          args = arguments[0].split(/[,\s+|\s+|,]/);
+
+          // remove any empty strings Array.split might have added
+          for (i = 0; i < args.length; i += 1) {
+            if (args[i].length) { filtered.push(args[i]); }
+          }
+          args = filtered;
+        }
+      }
+      return args;
+    } // end parseArray
+
     function Bigwheel (elements) {
       var instance = this,
           i,
           len = elements.length;
 
+      function generateId () {
+        var alpha = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            id = '', 
+            i;
+
+        function pick () {
+          if (Math.random() > 0.5) {
+            id += Math.floor(Math.random() * 10);
+          }
+          else {
+            id += alpha[Math.floor(Math.random() * 52)];
+          }
+        }
+
+        for (i = 0; i < 5; i += 1) {
+          pick();
+        }
+        return id;
+      } // end generateId
+
       for (i = 0; i < len; i += 1) {
         instance[i] = elements[i];
+        instance[i].ndx = i;
+        instance[i].bWid = generateId();
         instance.length = (i + 1);
+      }
+
+      if (len === 0) {
+        instance.length = 0;
       }
     } // end Bigwheel constructor
 
     Bigwheel.prototype = {
 
       // ### PROPERTIES
-      event_registry : { length : 0 },
-
+      event_registry : { length: 0 },
 
       // ### HELPERS: will probably be most useful to other bW methods, not users.
       wrap : function (elem_refs) {
@@ -187,7 +331,8 @@
 
       all : function (func, args) {
         var args_array = [],
-            i;
+            i,
+            remove = 1;
 
         // copy everything to args_array
         // args, ^above^, should be an array-like object. if not, convert it.
@@ -205,7 +350,7 @@
         for (i = 0; i < this.length; i += 1) {
           args_array.unshift(this[i]);
           func.apply(this, args_array);
-          args_array.shift();
+          args_array.splice(0, remove);
         }
 
         return this;
@@ -214,38 +359,6 @@
       first : function () {
         return this.wrap(this[0]);
       }, // end bW.first
-
-      parseArray : function () {
-        var args = [],
-            filtered = [],
-            i,
-            len = arguments.length;
-
-        if (len > 1) {
-          for (i = 0; i < len; i += 1) {
-            if (typeof arguments[i] === 'string') {
-              args.push(arguments[i]);
-            }
-          }
-        }
-        else {
-          if (typeof arguments[0] === 'object') {
-            for (key in arguments[0]) {
-              args.push(arguments[0][key]);
-            }
-          }
-          else if (typeof arguments[0] === 'string') {
-            args = arguments[0].split(/[,\s+|\s+|,]/);
-
-            // remove any empty strings Array.split might have added
-            for (i = 0; i < args.length; i += 1) {
-              if (args[i].length) { filtered.push(args[i]); }
-            }
-            args = filtered;
-          }
-        }
-        return args;
-      }, // end bW.parseArray
 
       // ### METHODS THAT OPERATE ON ALL ELEMENTS IN THE SET and return the bW object
       css : function (prop, value) {
@@ -259,98 +372,37 @@
       }, // end bW.css
 
       addClass : function () {
-        var args = this.parseArray(arguments);
+        var args = parseArray(arguments);
 
-        function setClass (elem) {
-          var addl_classes = [],
-              class_list,
-              i,
-              len;
-
-          // we don't know how many arguments we may get here
-          for (i = 1; i < arguments.length; i += 1) {
-            addl_classes.push(arguments[i]);
-          }
-
-          len = addl_classes.length;
-
-          if (elem.classList) {
-            for (i = 0; i < len; i += 1) {
-              elem.classList.add(addl_classes[i]);
-            }
-          }
-          else {
-            class_list = elem.className.split(' ');
-            for (i = 0; i < len; i += 1) {
-              class_list.push(addl_classes[i]);
-            }
-            elem.className = class_list.join(' ');
-          }
-        } // end setClass
-
-        return this.all(setClass, args);
+        return this.all(plusClass, args);
       }, // end bW.addClass
 
       removeClass : function () {
-        var args = this.parseArray(arguments);
+        var args = parseArray(arguments);
 
-        function setClass (elem) {
-          var retiring_classes = [],
-              retire,
-              class_list,
-              i,
-              j,
-              len;
-
-          // we don't know how many arguments we may get here
-          for (i = 1; i < arguments.length; i += 1) {
-            retiring_classes.push(arguments[i]);
-          }
-
-          len = retiring_classes.length;
-
-          if (elem.classList) {
-            for (i = 0; i < len; i += 1) {
-              elem.classList.remove(retiring_classes[i]);
-            }
-          }
-          else {
-            class_list = elem.className.split(' ');
-            for (i = 0; i < len; i += 1) {
-              retire = new RegExp(retiring_classes[i]);
-              for (j = 0; j < class_list.length; j += 1) {
-                if (retire.test(class_list[j])) {
-                  class_list.splice(j, 1);
-                }
-              }
-            }
-            elem.className = class_list.join(' ');
-          }
-        } // end setClass
-
-        return this.all(setClass, args);
+        return this.all(minusClass, args);
       }, // end bW.removeClass
 
       listenFor : function (evt, func, capt, aargs) {
 
         function listen (elem, evt, func, capt, aargs) {
-          var bWObj = this;
+          var instance = this;
 
           function add () {
             // W3C-compliant browsers
             if (elem.addEventListener) {
-              if (!bWObj.listener_model) { bWObj.listener_model = 'addEventListener'; }
+              if (!instance.listener_model) { instance.listener_model = 'addEventListener'; }
               elem.addEventListener(evt, func, capt);
             }
             // IE pre-9
             else {
               if (elem.attachEvent) { 
-                if (!bWObj.listener_model) { bWObj.listener_model = 'attachEvent'; }
+                if (!instance.listener_model) { instance.listener_model = 'attachEvent'; }
                 elem.attachEvent(('on' + evt), func);
               }
               // fall back to DOM level 0
               else { 
-                if (!bWObj.listener_model) { bWObj.listener_model = 'onevent'; }
+                if (!instance.listener_model) { instance.listener_model = 'onevent'; }
                 elem['on' + evt] = func;
               }
             }
@@ -358,24 +410,18 @@
 
           // store these values in a registry, so we can retrieve them
           function register () {
-            var proc_id;
+            var rx = /function ([a-zA-Z-_]*)\(/;
 
-            proc_id = (bWObj.event_registry.length); // unique id
             // ### more valuable for the key to be a unique ID or the event type string?
-            bWObj.event_registry[proc_id] = {
+            instance.event_registry[elem.ndx] = {};
+            instance.event_registry[elem.ndx][evt] = {
               elem : elem,
               evt : evt,
               func : func,
               capt : capt,
               aargs : aargs
             };
-            
-            // store the process ID in the function itself, using the event type as a key. for retrieving any additional arguments.
-            if (!func.reg_ids) {
-              func.reg_ids = {};
-            }
-            func.reg_ids[evt] = proc_id;
-            bWObj.event_registry.length += 1;
+            instance.event_registry.length += 1;
           } // end register
 
           add();
@@ -385,7 +431,47 @@
         return this.all(listen, arguments);
       }, // end bW.listenFor
 
-      stopListening : function () {
+      stopListening : function (evt, func) {
+        var instance = this;
+
+        function dontListen (elem, evt, func, capt) {
+
+          function remove () {
+            if (elem.removeEventListener) {
+              elem.removeEventListener(evt, func, capt);
+            }
+            else {
+              if (elem.detachEvent) {
+                elem.detachEvent(('on' + evt), func);
+              }
+              else {
+                elem[evt] = null;
+              }
+            }
+          } // end remove
+
+          function unregister () {
+            var count = 0,
+                key;
+
+            if (instance.event_registry.length > 0) {
+              delete instance.event_registry[elem.ndx][evt];
+              for (key in instance.event_registry[elem.ndx]) {
+                count += 1
+              }
+              instance.event_registry.length = count;
+
+              if (count === 0) {
+                delete instance.event_registry[elem.ndx];
+              }
+            }
+          } // end unregister
+
+          remove();
+          unregister();
+        } // end dontListen
+
+        return instance.all(dontListen, arguments);
       }, // end bW.stopListening
 
       before : function (elem) {
@@ -453,9 +539,212 @@
 
         new_scope = selectElements(slctr, collection);
         return new Bigwheel(new_scope);
-      } // end bW.find
+      }, // end bW.find
+
+      remove : function () {
+        function removeElement (elem) {
+          elem.parentNode.removeChild(elem);
+        }
+
+        return this.all(removeElement, arguments);
+      }, // end bW.remove
+
+      not : function (slctr) {
+        var comparison_set = selectElements(slctr);
+
+        function reindex (inst) {
+          var remainders = [],
+              i;
+
+          for (i = 0; i < inst.length; i += 1) {
+            if (inst[i]) {
+              remainders.push(inst[i]);
+              delete inst[i];
+            }
+          }
+
+          for (i = 0; i < remainders.length; i += 1) {
+            inst[i] = remainders[i];
+            inst[i].ndx = i;
+          }
+          inst.length = remainders.length;
+        } // end reindex
+
+        function compare (elem) {
+          var i,
+              comparator = arguments[0];
+
+          for (i = 1; i < arguments.length; i += 1) {
+            if (comparator === arguments[i]) {
+              delete this[comparator.ndx];
+              break;
+            }
+          }
+        } // end compare
+        this.all(compare, comparison_set);
+        reindex(this);
+        return this;
+      }, // end bW.not
+
+      setForm : function (submit_selector, suffix) {
+        var form = this[0],
+            submit,
+            form_obj;
+
+        if (!submit_selector) {
+          throw new Error('bW.setForm should be invoked with a selector for a submit button.');
+        }
+        else {
+          submit = selectElements(submit_selector)[0];
+        }
+
+        form_obj = new BigwheelForm(form, submit, suffix);
+        form_obj.init();
+        return form_obj;
+      } // end bW.setForm
 
     } // end Bigwheel prototype
+
+    function BigwheelForm (form_element, submit_button, class_suffix) {
+      var instance = this,
+          fclass,
+          prop,
+          i;
+
+      instance[0] = instance.form = form_element;
+      instance.submit = submit_button;
+      instance.length = 1;
+      instance.fields = selectElements('input, textarea, select');
+      instance.required_fields = [];
+      instance.data = {};
+
+      if (class_suffix) {
+        fclass = 'bW-form-' + class_suffix;
+        if (!/fclass/.test(instance[0].className)) {
+          plusClass(instance[0], fclass);
+        }
+        fclass = 'bW-submit-' + class_suffix;
+        if (!/fclass/.test(instance.submit.className)) {
+          plusClass(instance.submit, fclass);
+        }
+      }
+      
+      for (i = 0; i < instance.fields.length; i += 1) {
+        // exclude the submit button
+        if (instance.fields[i] === instance.submit) {
+          instance.fields.splice(i, 1);
+        }
+      }
+      
+      // ### BigwheelForm prototype needs all the Bigwheel.prototype methods ###
+      for (var prop in Bigwheel.prototype) {
+        BigwheelForm.prototype[prop] = Bigwheel.prototype[prop];
+      }
+
+      f = BigwheelForm.prototype;
+
+      f.collectFields = function () {
+        var i,
+            name;
+
+        for (i = 0; i < instance.fields.length; i += 1) {
+          name = instance.fields[i].name;
+          instance.data[name] = instance.fields[i].value;
+        }
+
+        console.log(instance);
+      } // end BigwheelForm.collectFields
+
+      f.setRequiredFields = function (slctr) {
+        var i,
+            rf = selectElements(slctr);
+
+        for (i = 0; i < rf.length; i += 1) {
+          instance.required_fields.push(rf[i]);
+          plusClass(rf[i], 'bW-required-field');
+        }
+
+        return instance;
+      } // end BigwheelForm.setRequiredFields
+
+      f.addToTests = function (test) {
+        f.tests = f.tests || [];
+        f.tests.push(test);
+      } // end BigwheelForm.addToTests
+
+      f.init = function () {
+        var instance = this;
+      } // end BigwheelForm.init
+
+      f.readyToSubmitForm = function () {
+        var ready_to_submit = true,
+            tests = [
+              f.areFieldsEmpty,
+              f.outsideSubmissionLimit,
+              f.outsideTextLimit
+            ],
+            i;
+
+        f.unBruiseFields();
+
+        bW('.validation-error-message').remove();
+        if (arguments.length > 0) {
+          for (i = 0; i < arguments.length; i+= 0) {
+            tests.push(arguments [i]);
+          }
+        }
+
+        for (i = 0; i < tests.length; i += 1) {
+          // each test is for an error, so if one returns true, something\'s wrong
+          if (tests[i](f.fields, f.event_obj.target)) {
+            ready_to_submit = false;
+            // bW('.submitphoto').removeClass('ready');
+          }
+        }
+        // bW('.submitphoto').addClass('ready');
+        return ready_to_submit;
+      } // end readyToSubmitForm
+
+      f.sendData = function () {
+        f.collectValuesAsJSON();
+        f.collectImagesAsJSON();
+        f.collectLocationDescriptionsAsJSON();
+
+        ajaxOpts = {
+          type: 'POST',
+          url: url_goes_here,
+          data: f.JSONData,
+          success: function (data) {
+            f.showThanks();
+          },
+          error: function (e, status, error_thrown) {
+            console.log('Form at ' + document.location.href + ' failed to submit with the error: "' + e.status + ' ' + error_thrown + '".');
+            f.addErrorMessage('There was a problem processing your submission. Please try again.');
+            form.find('.field').first().addClass('validation-warning');
+            f.showErrorToast();
+            form.find('.field').first().removeClass('validation-warning');
+          }
+        }
+
+        bW.ajax(ajaxOpts);
+      } // end BigwheelForm.sendData
+
+      f.submitHandler = function (evt) {
+        evt.preventDefault();
+        instance.collectFields();
+        /*
+        if (f.readyToSubmitForm()) {
+          f.sendData();
+        }
+        else {
+          f.showErrorToast();
+        }
+        */
+      }
+      // ### end BigwheelForm prototype ###
+
+      bW(instance.submit).listenFor('click', instance.submitHandler, true);
+    } // end BigwheelForm constructor
 
     return new Bigwheel(selectElements(selector));
 

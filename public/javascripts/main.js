@@ -27,6 +27,10 @@ requirejs(['bigwheel'], function (bW) {
       add_set_button = bW('#addset'),
       form_phases;
 
+  function testStopListening () {
+    next_button.stopListening('click', showCurrentFormPhase, true);
+  }
+
   function advanceForm () {
     form_state.current_ndx += 1;
     if (form_state.current_ndx >= form_state.phases.length) {
@@ -57,10 +61,6 @@ requirejs(['bigwheel'], function (bW) {
   }
 
   function validateCurrentSetData () {
-  }
-
-  function testRemoveClass () {
-    bW('section').removeClass('phase');
   }
 
   function addSet () {
@@ -96,5 +96,7 @@ requirejs(['bigwheel'], function (bW) {
 
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', showCurrentFormPhase, true);
+  // seems to bind to the original version of stopListening, not the one it becomes.
   form_state.init();
+  bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input');
 });
