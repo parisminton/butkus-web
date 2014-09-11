@@ -1,5 +1,5 @@
 /* 
- * > bigwheel.js 0.3.0 <
+ * > bigwheel.js 0.5.0 <
  *
  * My go-to JavaScript functions.
  * 
@@ -19,7 +19,7 @@
 
       scope = scope || document;
 
-      function filterHTMLCollection (list, getter, filter) {
+      function filterHTMLCollection (list, getter, filter, attr) {
         var i,
             len = list.length,
             nodes,
@@ -67,6 +67,53 @@
           }
         } // end drillDown
 
+        function testAttribute (list) {
+          var i,
+              len = list.length;
+
+          // an inefficient last resort for when the attribute selector is not scoped
+          function scanAllAttributes (f) {
+            var i,
+                everything = document.getElementsByTagName('*'),
+                elen = everything.length,
+                nodes = [];
+
+            for (i = 0; i < elen; i += 1) {
+              if (everything[i].hasAttribute(f)) {
+                nodes.push(everything[i]);
+              }
+            }
+
+            list = nodes;
+          } // end scanAllAttributes
+
+          if (list[0] === document && len === 1) {
+            scanAllAttributes(filter);
+          }
+
+          len = list.length;
+
+          for (i = 0; i < len; i += 1) {
+            if (list[i][getter]) {
+              if (list[i][getter](filter)) {
+                filtered_nodes.push(list[i]);
+              }
+            }
+          }
+        } // end testAttribute
+
+        function matchAttribute (list) {
+          var i,
+              len = list.length,
+              attr_rx = new RegExp(filter);
+
+          for (i = 0; i < len; i += 1) {
+            if (attr_rx.test(list[i].getAttribute(attr))) {
+              filtered_nodes.push(list[i]);
+            }
+          }
+        } // end matchAttribute
+
         function matchSpecifier (list) {
           var i,
               len = list.length,
@@ -85,6 +132,12 @@
         if (/className|id/.test(getter)) {
           matchSpecifier(list);
         }
+        else if (/hasAttribute/.test(getter)) {
+          testAttribute(list);
+        }
+        else if (/matchAttribute/.test(getter)) {
+          matchAttribute(list);
+        }
         else {
           drillDown(list);
         }
@@ -100,8 +153,9 @@
             j;
 
         function select (s) {
-          var tokens = s.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\./g) || [],
-              flags = s.split(/\s+|\.|#/g) || [],
+          var tokens = s.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\.|[a-zA-Z0-9_-]\[[a-zA-Z0-9_-]|\s+\[|^\[|[\|\*\^\$\~\!]?=["']/g) || [],
+              flags = s.split(/\s+|\.|#|\[|[\|\*\^\$\~\!]?=["']|["']?\]/g) || [],
+              attr,
               filtered = [],
               i;
           
@@ -113,6 +167,8 @@
           }
           flags = filtered;
 
+          // no token precedes the flag, so keep arrays in sync
+          // this means the scope is document -- we'll search by tag name
           if (tokens.length < flags.length) {
             tokens.unshift('tagname');
           }
@@ -140,12 +196,21 @@
               getter = 'id';
             }
 
+            if (/\[/.test(tokens[i])) {
+              attr = flags[i];
+              getter = 'hasAttribute';
+            }
+            
+            if (/[\|\*\^\$\~\!]?=/.test(tokens[i])) {
+              getter = 'matchAttribute';
+            }
+
             // put singular DOM references, but not HTMLCollections, in an array
             // filterHTMLCollection always stores its results in a true array
             if (typeof scope.length === 'undefined') {
               scope = [scope];
             }
-            filterHTMLCollection(scope, getter, flags[i]);
+            filterHTMLCollection(scope, getter, flags[i], attr);
 
           } // end tokens/flags loop
 
@@ -608,15 +673,49 @@
     function BigwheelForm (form_element, submit_button, class_suffix) {
       var instance = this,
           fclass,
+          fields = selectElements('input, textarea, select'),
           prop,
           i;
 
       instance[0] = instance.form = form_element;
       instance.submit = submit_button;
       instance.length = 1;
-      instance.fields = selectElements('input, textarea, select');
+      instance.fields = {};
       instance.required_fields = [];
+      instance.collectors = {};
       instance.data = {};
+
+      // ### bWF HELPERS  ###
+      function bruiseField (field) {
+        if (/TEXTAREA|SELECT/.test(field.nodeName)
+          || /text|fieldset/.test(field.type)) {
+          plusClass(field, 'bW-invalid-field');
+        }
+      } // end bruiseField
+
+      function areFieldsEmpty () {
+        var i,
+            empty = false;
+
+        for (i = 0; i < instance.required_fields.length; i += 1) {
+          if (instance.required_fields[i].value === '') {
+            bruiseField(instance.required_fields[i]);
+            empty = true;
+          }
+        }
+        if (empty) {
+          // prepare error message
+        }
+        return empty;
+      } // end areFieldsEmpty
+
+      function collectValues () {
+        var name;
+
+        for (name in instance.fields) {
+          instance.data[name] = instance.fields[name].value;
+        }
+      } // end collectValues
 
       if (class_suffix) {
         fclass = 'bW-form-' + class_suffix;
@@ -629,10 +728,13 @@
         }
       }
       
-      for (i = 0; i < instance.fields.length; i += 1) {
+      for (i = 0; i < fields.length; i += 1) {
         // exclude the submit button
-        if (instance.fields[i] === instance.submit) {
-          instance.fields.splice(i, 1);
+        if (fields[i] === instance.submit) {
+          fields.splice(i, 1);
+        }
+        else {
+          instance.fields[fields[i].name] = fields[i];
         }
       }
       
@@ -642,18 +744,6 @@
       }
 
       f = BigwheelForm.prototype;
-
-      f.collectFields = function () {
-        var i,
-            name;
-
-        for (i = 0; i < instance.fields.length; i += 1) {
-          name = instance.fields[i].name;
-          instance.data[name] = instance.fields[i].value;
-        }
-
-        console.log(instance);
-      } // end BigwheelForm.collectFields
 
       f.setRequiredFields = function (slctr) {
         var i,
@@ -665,16 +755,40 @@
         }
 
         return instance;
-      } // end BigwheelForm.setRequiredFields
+      } // end bWF.setRequiredFields
+
+      f.val = function (name) {
+        if (instance.fields[name]) { return instance.fields[name].value; }
+      } // end bWF.val
+
+      f.addCollector = function (callback, cbname) {
+        var rx = /^function ([a-zA-Z_-]+)\(.*\)/,
+            fname;
+
+        if (!cbname) {
+          if (rx.test(callback)) {
+            fname = rx.exec(callback)[1];
+          }
+          else {
+            throw new Error('BigwheelForm.addCollector was passed anonymous function, but no name was passed.\n\nPlease pass a named function as its first argument or an additional name string as its second argument.');
+          }
+        }
+        else {
+          fname = cbname;
+        }
+
+        instance.collectors[fname] = callback;
+      } // end collect
+
 
       f.addToTests = function (test) {
         f.tests = f.tests || [];
         f.tests.push(test);
-      } // end BigwheelForm.addToTests
+      } // end bWF.addToTests
 
       f.init = function () {
         var instance = this;
-      } // end BigwheelForm.init
+      } // end bWF.init
 
       f.readyToSubmitForm = function () {
         var ready_to_submit = true,
@@ -687,7 +801,7 @@
 
         f.unBruiseFields();
 
-        bW('.validation-error-message').remove();
+        bW('.bW-validation-error-message').remove();
         if (arguments.length > 0) {
           for (i = 0; i < arguments.length; i+= 0) {
             tests.push(arguments [i]);
@@ -720,18 +834,19 @@
           error: function (e, status, error_thrown) {
             console.log('Form at ' + document.location.href + ' failed to submit with the error: "' + e.status + ' ' + error_thrown + '".');
             f.addErrorMessage('There was a problem processing your submission. Please try again.');
-            form.find('.field').first().addClass('validation-warning');
+            form.find('.field').first().addClass('bW-invalid-field');
             f.showErrorToast();
-            form.find('.field').first().removeClass('validation-warning');
+            form.find('.field').first().removeClass('bW-invalid-field');
           }
         }
 
         bW.ajax(ajaxOpts);
-      } // end BigwheelForm.sendData
+      } // end bWF.sendData
 
       f.submitHandler = function (evt) {
         evt.preventDefault();
-        instance.collectFields();
+        collectValues();
+        areFieldsEmpty();
         /*
         if (f.readyToSubmitForm()) {
           f.sendData();

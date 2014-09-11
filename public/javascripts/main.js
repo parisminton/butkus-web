@@ -94,9 +94,23 @@ requirejs(['bigwheel'], function (bW) {
     add_set_button.before(fieldset);
   }
 
+  function roost (data) {
+    var len;
+    
+    data.exercises = data.exercises || {};
+    data.exercises.sets = data.exercises.sets || {};
+
+    len = data.exercises.sets.length;
+
+    console.log(len);
+  }
+
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', showCurrentFormPhase, true);
   // seems to bind to the original version of stopListening, not the one it becomes.
   form_state.init();
-  bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input');
+  var chicken = bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input');
+
+  chicken.addCollector(roost);
+  console.log(chicken);
 });
