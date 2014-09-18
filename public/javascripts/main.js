@@ -27,6 +27,11 @@ requirejs(['bigwheel'], function (bW) {
       add_set_button = bW('#addset'),
       form_phases;
 
+  function testExercises () {
+    console.log(bW('fieldset.exercise fieldset'));
+  }
+  bW('h1').listenFor('click', testExercises);
+
   function testStopListening () {
     next_button.stopListening('click', showCurrentFormPhase, true);
   }
@@ -53,11 +58,15 @@ requirejs(['bigwheel'], function (bW) {
 
   function addCurrentWeight () {
     BUTKUS.bout = BUTKUS.bout || {};
-
     BUTKUS.bout.current_weight = bW('#current_weight').val();
   }
 
   function addSetData () {
+    var sets = {};
+
+    BUTKUS.bout = BUTKUS.bout || {};
+    BUTKUS.bout.exercises = BUTKUS.bout.exercises || {};
+    BUTKUS.bout.exercises.sets = BUTKUS.bout.exercises.sets || {};
   }
 
   function validateCurrentSetData () {
