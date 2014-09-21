@@ -22,19 +22,18 @@ requirejs(['bigwheel'], function (bW) {
         }
       },
 
-      form = bW('#log'),
+      form = bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input'),
       next_button = bW('#next'),
       add_set_button = bW('#addset'),
       form_phases;
 
   function testExercises () {
-    console.log(bW('fieldset.exercise fieldset'));
+    console.log(bW('fieldset.exercise fieldset').find('input, textarea')
+      .each(function (ndx, elem) {
+        bW(elem).addClass('chicken');
+      }));
   }
   bW('h1').listenFor('click', testExercises);
-
-  function testStopListening () {
-    next_button.stopListening('click', showCurrentFormPhase, true);
-  }
 
   function advanceForm () {
     form_state.current_ndx += 1;
@@ -54,19 +53,23 @@ requirejs(['bigwheel'], function (bW) {
   // a bout is created when the user hits one of the 'start logging' buttons.
   function addBout () {
     BUTKUS.bout = BUTKUS.bout || {};
+    BUTKUS.bout.exercises = BUTKUS.bout.exercises || {};
+    BUTKUS.bout.exercises.sets = BUTKUS.bout.exercises.sets || [];
   }
 
   function addCurrentWeight () {
-    BUTKUS.bout = BUTKUS.bout || {};
+    if (!BUTKUS.bout) { addBout() }
     BUTKUS.bout.current_weight = bW('#current_weight').val();
   }
 
-  function addSetData () {
-    var sets = {};
-
-    BUTKUS.bout = BUTKUS.bout || {};
-    BUTKUS.bout.exercises = BUTKUS.bout.exercises || {};
-    BUTKUS.bout.exercises.sets = BUTKUS.bout.exercises.sets || {};
+  function addSetData (ndx) {
+    if (!BUTKUS.bout) { addBout() }
+    BUTKUS.bout.exercises.sets.push({
+      weight : bW('set' + ndx + '_weight').val(),
+      reps : bW('set' + ndx + '_reps').val(),
+      rest : bW('set' + ndx + '_rest').val(),
+      comment : bW('set' + ndx + '_comment').val()
+    });
   }
 
   function validateCurrentSetData () {
@@ -75,7 +78,7 @@ requirejs(['bigwheel'], function (bW) {
   function addSet () {
     var container = document.createDocumentFragment(),
         template_string,
-        si = 1 /* set index | get current set length */,
+        si = bW('fieldset.exercise fieldset').length,
         fieldset = document.createElement('fieldset');
 
     fieldset.className = 'set' + si;
@@ -103,23 +106,9 @@ requirejs(['bigwheel'], function (bW) {
     add_set_button.before(fieldset);
   }
 
-  function roost (data) {
-    var len;
-    
-    data.exercises = data.exercises || {};
-    data.exercises.sets = data.exercises.sets || {};
-
-    len = data.exercises.sets.length;
-
-    console.log(len);
-  }
-
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', showCurrentFormPhase, true);
-  // seems to bind to the original version of stopListening, not the one it becomes.
   form_state.init();
-  var chicken = bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input');
-
-  chicken.addCollector(roost);
-  console.log(chicken);
+  form.addCollector(addSetData);
+  console.log(form);
 });

@@ -150,7 +150,8 @@
         var slctr_array = slctr.split(','),
             parsed = [],
             i,
-            j;
+            j,
+            retained_scope = scope;
 
         function select (s) {
           var tokens = s.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\.|[a-zA-Z0-9_-]\[[a-zA-Z0-9_-]|\s+\[|^\[|[\|\*\^\$\~\!]?=["']/g) || [],
@@ -218,7 +219,7 @@
 
         if (slctr_array.length > 1) {
           for (i = 0; i < slctr_array.length; i += 1) {
-            scope = document; // needs resetting for each call
+            scope = retained_scope; // consistent scope inside this loop
             select(slctr_array[i].replace(/^\s+/, ''));
             // scope is always an array at this point. we just want its members.
             for (j = 0; j < scope.length; j += 1) {
@@ -420,6 +421,18 @@
 
         return this;
       }, // end bW.all
+
+      each : function (func) {
+        var instance = this,
+            i,
+            len = instance.length;
+
+        for (i = 0; i < len; i += 1) {
+          func.apply(instance, [i, instance[i]]);
+        }
+        
+        return instance;
+      }, // end bW.each
 
       first : function () {
         return this.wrap(this[0]);
@@ -683,7 +696,7 @@
       instance.fields = {};
       instance.required_fields = [];
       instance.collectors = {};
-      instance.data = {};
+      instance.formData = {};
 
       // ### bWF HELPERS  ###
       function bruiseField (field) {
@@ -713,7 +726,7 @@
         var name;
 
         for (name in instance.fields) {
-          instance.data[name] = instance.fields[name].value;
+          instance.formData[name] = instance.fields[name].value;
         }
       } // end collectValues
 
@@ -778,7 +791,8 @@
         }
 
         instance.collectors[fname] = callback;
-      } // end collect
+        return instance;
+      } // end bWF.addCollector
 
 
       f.addToTests = function (test) {
@@ -827,7 +841,7 @@
         ajaxOpts = {
           type: 'POST',
           url: url_goes_here,
-          data: f.JSONData,
+          data: f.formData,
           success: function (data) {
             f.showThanks();
           },
