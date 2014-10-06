@@ -1,7 +1,21 @@
 requirejs(['bigwheel'], function (bW) {
   var BUTKUS = BUTKUS || {
         user : {},
-        session : {}
+        session : {},
+        collector : {
+          '#current_weight' : 'current_weight',
+          '#date' : 'date',
+          '#day' : 'day',
+          '#time' : 'time',
+          '#exercise_name' : 'exercises[0].name',
+          '#stretched_before' : 'exercises[0].stretched_before',
+          '#set0_weight' : 'exercises[0].sets[0].weight',
+          '#set0_reps' : 'exercises[0].sets[0].reps',
+          '#set0_rest' : 'exercises[0].sets[0].rest',
+          '#set0_comment' : 'exercises[0].sets[0].comment',
+          '#stretched_after' : 'exercises[0].stretched_after',
+          '#immediate_protein' : 'immediate_protein'
+        }
       },
 
       form_state = {
@@ -23,9 +37,9 @@ requirejs(['bigwheel'], function (bW) {
       },
 
       form = bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input'),
+      form_phases,
       next_button = bW('#next'),
-      add_set_button = bW('#addset'),
-      form_phases;
+      add_set_button = bW('#addset');
 
   function testExercises () {
     console.log(bW('fieldset.exercise fieldset').find('input, textarea')
@@ -62,13 +76,19 @@ requirejs(['bigwheel'], function (bW) {
     BUTKUS.bout.current_weight = bW('#current_weight').val();
   }
 
+  function collect () {
+  }
+
+  // collect[elem.id]();
+  // collect['#set0_weight']();
+
   function addSetData (ndx) {
     if (!BUTKUS.bout) { addBout() }
     BUTKUS.bout.exercises.sets.push({
-      weight : bW('set' + ndx + '_weight').val(),
-      reps : bW('set' + ndx + '_reps').val(),
-      rest : bW('set' + ndx + '_rest').val(),
-      comment : bW('set' + ndx + '_comment').val()
+      weight : bW('#set' + ndx + '_weight').val(),
+      reps : bW('#set' + ndx + '_reps').val(),
+      rest : bW('#set' + ndx + '_rest').val(),
+      comment : bW('#set' + ndx + '_comment').val()
     });
   }
 
@@ -109,6 +129,5 @@ requirejs(['bigwheel'], function (bW) {
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', showCurrentFormPhase, true);
   form_state.init();
-  form.addCollector(addSetData);
-  console.log(form);
+  form.addCollector(addSetData).collectValues(BUTKUS.collector);
 });
