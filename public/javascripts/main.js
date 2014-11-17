@@ -7,13 +7,15 @@ requirejs(['bigwheel'], function (bW) {
           '#date' : 'date',
           '#day' : 'day',
           '#time' : 'time',
-          '#exercise_name' : 'exercises[0].name',
-          '#stretched_before' : 'exercises[0].stretched_before',
-          '#set0_weight' : 'exercises[0].sets[0].weight',
-          '#set0_reps' : 'exercises[0].sets[0].reps',
-          '#set0_rest' : 'exercises[0].sets[0].rest',
-          '#set0_comment' : 'exercises[0].sets[0].comment',
-          '#stretched_after' : 'exercises[0].stretched_after',
+          'fieldset.exercise/\\d+/$' : 'exercises[##]',
+          '#exercise/\\d+/_name' : 'exercises[##].name',
+          '#exercise/\\d+/_stretched_before' : 'exercises[##].stretched_before',
+          'fieldset.exercise/\\d+/_set/\\d+/' : 'exercises[##].sets[##]',
+          '#exercise/\\d+/_set/\\d+/_weight' : 'exercises[##].sets[##].weight',
+          '#exercise/\\d+/_set/\\d+/_reps' : 'exercises[##].sets[##].reps',
+          '#exercise/\\d+/_set/\\d+/_rest' : 'exercises[##].sets[##].rest',
+          '#exercise/\\d+/_set/\\d+/_comment' : 'exercises[##].sets[##].comment',
+          '#exercise/\\d+/_stretched_after' : 'exercises[##].stretched_after',
           '#immediate_protein' : 'immediate_protein'
         }
       },
@@ -130,4 +132,5 @@ requirejs(['bigwheel'], function (bW) {
   next_button.listenFor('click', showCurrentFormPhase, true);
   form_state.init();
   form.addCollector(addSetData).collectValues(BUTKUS.collector);
+  // console.log(bW('.exercise/\\d/$'));
 });

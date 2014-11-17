@@ -36,53 +36,207 @@ block content
         input(type='text', name='time', id='time')
         
     section.phase.exercise(data-phase='{"2":"exercise"}')
-      div.field
-        label(for='exercise_name') Which exercise are you doing?
-        select(name='exercise_name', id='exercise_name')
-          option(value='barbell_squats') Barbell squats
-          option(value='chinups') Chinups
-          option(value='ezbar_curls') Curls with EZ-bar
-          option(value='dips') Dips
-          option(value='dumbbell_curls') Dumbbell curls
-          option(value='dumbbell_raises') Dumbbell raises
-          option(value='flat_bench') Flat bench
-          option(value='pullups') Pullups
-          option(value='pushups') Pushups
+      fieldset.exercise0
+        div.field
+          label(for='exercise0_name') Which exercise are you doing?
+          select(name='exercise0_name', id='exercise0_name')
+            option(value='barbell_squats') Barbell squats
+            option(value='chinups') Chinups
+            option(value='ezbar_curls') Curls with EZ-bar
+            option(value='dips') Dips
+            option(value='dumbbell_curls') Dumbbell curls
+            option(value='dumbbell_raises') Dumbbell raises
+            option(value='flat_bench') Flat bench
+            option(value='pullups') Pullups
+            option(value='pushups') Pushups
 
-      fieldset.exercise
         div#starttimer.button
           p Start the timer.
 
         div.field
-          label(for='stretched_before') Stretched before?
-          select(name='stretched_before', id='stretched_before')
+          label(for='exercise0_stretched_before') Stretched before?
+          select(name='exercise0_stretched_before', id='exercise0_stretched_before')
             option(value='true') Yes
             option(value='false') No
 
-        fieldset.set0
+        fieldset.exercise0_set0
           legend Set 1
           div.field
-            label(for='set0_weight') Weight
-            input(name='set0_weight', id='set0_weight')
+            label(for='exercise0_set0_weight') Weight
+            input(name='exercise0_set0_weight', id='exercise0_set0_weight')
 
           div.field
-            label(for='set0_reps') Reps
-            input(name='set0_reps', id='set0_reps')
+            label(for='exercise0_set0_reps') Reps
+            input(name='exercise0_set0_reps', id='exercise0_set0_reps')
 
           div.field
-            label(for='set0_rest') Rest
-            input(name='set0_rest', id='set0_rest')
+            label(for='exercise0_set0_rest') Rest
+            input(name='exercise0_set0_rest', id='exercise0_set0_rest')
         
           div.field
-            label(for='set0_comment') Comment
-            textarea(name='set0_comment', id='set0_comment')
+            label(for='exercise0_set0_comment') Comment
+            textarea(name='exercise0_set0_comment', id='exercise0_set0_comment')
         
         div#addset.button
           p Add a set.
 
         div.field
-          label(for='stretched_after') Stretched after?
-          select(name='stretched_after', id='stretched_after')
+          label(for='exercise0_stretched_after') Stretched after?
+          select(name='exercise0_stretched_after', id='exercise0_stretched_after')
+            option(value='true') Yes
+            option(value='false') No
+
+      fieldset.exercise1
+        div.field
+          label(for='exercise1_name') Which exercise are you doing?
+          select(name='exercise1_name', id='exercise1_name')
+            option(value='barbell_squats') Barbell squats
+            option(value='chinups') Chinups
+            option(value='ezbar_curls') Curls with EZ-bar
+            option(value='dips') Dips
+            option(value='dumbbell_curls') Dumbbell curls
+            option(value='dumbbell_raises') Dumbbell raises
+            option(value='flat_bench') Flat bench
+            option(value='pullups') Pullups
+            option(value='pushups') Pushups
+
+        div#starttimer.button
+          p Start the timer.
+
+        div.field
+          label(for='exercise1_stretched_before') Stretched before?
+          select(name='exercise1_stretched_before', id='exercise1_stretched_before')
+            option(value='true') Yes
+            option(value='false') No
+
+        fieldset.exercise1_set0
+          legend Set 1
+          div.field
+            label(for='exercise1_set0_weight') Weight
+            input(name='exercise1_set0_weight', id='exercise1_set0_weight')
+
+          div.field
+            label(for='exercise1_set0_reps') Reps
+            input(name='exercise1_set0_reps', id='exercise1_set0_reps')
+
+          div.field
+            label(for='exercise1_set0_rest') Rest
+            input(name='exercise1_set0_rest', id='exercise1_set0_rest')
+        
+          div.field
+            label(for='exercise1_set0_comment') Comment
+            textarea(name='exercise1_set0_comment', id='exercise1_set0_comment')
+        
+        fieldset.exercise1_set1
+          legend Set 2
+          div.field
+            label(for='exercise1_set1_weight') Weight
+            input(name='exercise1_set1_weight', id='exercise1_set1_weight')
+
+          div.field
+            label(for='exercise1_set1_reps') Reps
+            input(name='exercise1_set1_reps', id='exercise1_set1_reps')
+
+          div.field
+            label(for='exercise1_set1_rest') Rest
+            input(name='exercise1_set1_rest', id='exercise1_set1_rest')
+        
+          div.field
+            label(for='exercise1_set1_comment') Comment
+            textarea(name='exercise1_set1_comment', id='exercise1_set1_comment')
+        
+        div#addset.button
+          p Add a set.
+
+        div.field
+          label(for='exercise1_stretched_after') Stretched after?
+          select(name='exercise1_stretched_after', id='exercise1_stretched_after')
+            option(value='true') Yes
+            option(value='false') No
+
+      fieldset.exercise2
+        div.field
+          label(for='exercise2_name') Which exercise are you doing?
+          select(name='exercise2_name', id='exercise2_name')
+            option(value='barbell_squats') Barbell squats
+            option(value='chinups') Chinups
+            option(value='ezbar_curls') Curls with EZ-bar
+            option(value='dips') Dips
+            option(value='dumbbell_curls') Dumbbell curls
+            option(value='dumbbell_raises') Dumbbell raises
+            option(value='flat_bench') Flat bench
+            option(value='pullups') Pullups
+            option(value='pushups') Pushups
+
+        div#starttimer.button
+          p Start the timer.
+
+        div.field
+          label(for='exercise2_stretched_before') Stretched before?
+          select(name='exercise2_stretched_before', id='exercise2_stretched_before')
+            option(value='true') Yes
+            option(value='false') No
+
+        fieldset.exercise2_set0
+          legend Set 1
+          div.field
+            label(for='exercise2_set0_weight') Weight
+            input(name='exercise2_set0_weight', id='exercise2_set0_weight')
+
+          div.field
+            label(for='exercise2_set0_reps') Reps
+            input(name='exercise2_set0_reps', id='exercise2_set0_reps')
+
+          div.field
+            label(for='exercise2_set0_rest') Rest
+            input(name='exercise2_set0_rest', id='exercise2_set0_rest')
+        
+          div.field
+            label(for='exercise2_set0_comment') Comment
+            textarea(name='exercise2_set0_comment', id='exercise2_set0_comment')
+        
+        fieldset.exercise2_set1
+          legend Set 2
+          div.field
+            label(for='exercise2_set1_weight') Weight
+            input(name='exercise2_set1_weight', id='exercise2_set1_weight')
+
+          div.field
+            label(for='exercise2_set1_reps') Reps
+            input(name='exercise2_set1_reps', id='exercise2_set1_reps')
+
+          div.field
+            label(for='exercise2_set1_rest') Rest
+            input(name='exercise2_set1_rest', id='exercise2_set1_rest')
+        
+          div.field
+            label(for='exercise2_set1_comment') Comment
+            textarea(name='exercise2_set1_comment', id='exercise2_set1_comment')
+        
+        fieldset.exercise_set2
+          legend Set 3
+          div.field
+            label(for='exercise_set2_weight') Weight
+            input(name='exercise_set2_weight', id='exercise_set2_weight')
+
+          div.field
+            label(for='exercise_set2_reps') Reps
+            input(name='exercise_set2_reps', id='exercise_set2_reps')
+
+          div.field
+            label(for='exercise_set2_rest') Rest
+            input(name='exercise_set2_rest', id='exercise_set2_rest')
+        
+          div.field
+            label(for='exercise_set2_comment') Comment
+            textarea(name='exercise_set2_comment', id='exercise_set2_comment')
+        
+        div#addset.button
+          p Add a set.
+
+        div.field
+          label(for='exercise2_stretched_after') Stretched after?
+          select(name='exercise2_stretched_after', id='exercise2_stretched_after')
             option(value='true') Yes
             option(value='false') No
 

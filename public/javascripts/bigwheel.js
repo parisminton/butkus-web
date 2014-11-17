@@ -57,7 +57,10 @@
           for (i = 0; i < len; i += 1) {
             nodes = list[i][getter](filter);
 
-            if (nodes.constructor === HTMLCollection ||
+            if (!nodes) {
+              throw new Error('Your selector doesn\'t create a valid DOM method.');
+            }
+            else if (nodes && nodes.constructor === HTMLCollection ||
                 nodes.constructor === NodeList) {
               parseNodes(nodes);
             }
@@ -67,28 +70,39 @@
           }
         } // end drillDown
 
+        // an inefficient last resort for when the attribute selector is not scoped
+        function scanAllAttributes (attr) {
+          var body = document.getElementsByTagName('body')[0],
+              collection = [];
+
+          function testForAttribute (node) {
+            var j,
+                len;
+
+            if (node.nodeType === 1 && node.hasAttribute(attr)) {
+              collection.push(node);
+            }
+            if (node.nodeType === 1 && node.hasChildNodes()) {
+              j = 0;
+              len = node.childNodes.length;
+
+              for (j = 0; j < len; j += 1) {
+                testForAttribute(node.childNodes[j]);
+              }
+            }
+          }
+
+          testForAttribute(body);
+
+          return list = collection;
+        } // end scanAllAttributes
+
         function testAttribute (list) {
           var i,
               len = list.length;
 
-          // an inefficient last resort for when the attribute selector is not scoped
-          function scanAllAttributes (f) {
-            var i,
-                everything = document.getElementsByTagName('*'),
-                elen = everything.length,
-                nodes = [];
-
-            for (i = 0; i < elen; i += 1) {
-              if (everything[i].hasAttribute(f)) {
-                nodes.push(everything[i]);
-              }
-            }
-
-            list = nodes;
-          } // end scanAllAttributes
-
           if (list[0] === document && len === 1) {
-            scanAllAttributes(filter);
+            list = scanAllAttributes(filter);
           }
 
           len = list.length;
@@ -114,16 +128,99 @@
           }
         } // end matchAttribute
 
+
+        function matchRegex (list) {
+          var patterns = filter.match(/\/.+?\//g),
+              rx = filter,
+              i,
+              j,
+              identifier = (attr === 'class') ? 'className' : 'id',
+              class_list,
+              p_len,
+              l_len,
+              cl_len;
+
+          // creating a global regex that'll match a string
+          // masquerading as a regex is way harder than it
+          // ought to be ... just like this code
+          function rxer (rx_string) {
+            var letters,
+                quantifier,
+                q_rx;
+
+            if (/\/\\.+\//.test(rx_string)) {
+              letters = /\/\\(.+)\//.exec(rx_string)[1];
+              if (/\+|\?|\*/.test(letters)) {
+                quantifier = /(\+|\?|\*)/.exec(letters)[1];
+                q_rx = new RegExp('\\' + quantifier, 'g');
+                letters = letters.replace(q_rx, '\\' + quantifier);
+              }
+              return new RegExp('\/\\\\' + letters + '\/', 'g');
+            }
+          }
+          
+          patterns = storeUniques(patterns);
+          p_len = patterns.length;
+
+          for (i = 0; i < p_len; i += 1) {
+            if (/^\/.+\/$/.test(patterns[i])) {
+              rx = rx.replace(
+                rxer(patterns[i], 'g'), patterns[i].replace(/^\/|\/$/g, '')
+              );
+            }
+          }
+
+          rx = new RegExp(rx);
+
+          if (list[0] === document && list.length === 1) {
+            list = scanAllAttributes(attr); // returns list
+          }
+          l_len = list.length;
+
+          for (i = 0; i < l_len; i += 1) {
+            if (identifier === 'className') {
+              class_list = list[i][identifier].split(' ');
+              cl_len = class_list.length;
+
+              for (j = 0; j < cl_len; j += 1) {
+                if (rx.test(class_list[j])) {
+                  filtered_nodes.push(list[i]);
+                  break;
+                }
+              }
+            }
+            else if (rx.test(list[i][identifier])) {
+              filtered_nodes.push(list[i]);
+            }
+          }
+
+          return rx;
+        } // end matchRegex
+
         function matchSpecifier (list) {
           var i,
+              j,
               len = list.length,
+              cl_len,
               specifier,
-              rx = new RegExp(filter);
+              rx = new RegExp(filter),
+              class_list;
 
           for (i = 0; i < len; i += 1) {
             specifier = list[i][getter];
 
-            if (rx.test(specifier)) {
+            // class matches need to be exact, not partial
+            if (getter === 'className') {
+              class_list = list[i][getter].split(' ');
+              cl_len = class_list.length;
+
+              for (j = 0; j < cl_len; j += 1) {
+                if (specifier === class_list[j]) {
+                  filtered_nodes.push(list[i]);
+                }
+              }
+            }
+            else {
               filtered_nodes.push(list[i]);
             }
           }
@@ -137,6 +234,9 @@
         }
         else if (/matchAttribute/.test(getter)) {
           matchAttribute(list);
+        }
+        else if (/matchRegex/.test(getter)) {
+          matchRegex(list);
         }
         else {
           drillDown(list);
@@ -204,6 +304,20 @@
             
             if (/[\|\*\^\$\~\!]?=/.test(tokens[i])) {
               getter = 'matchAttribute';
+            }
+
+            if (/\/(.*)\//.test(flags[i])) {
+              getter = 'matchRegex';
+
+              if (/\./.test(tokens[i])) {
+                attr = 'class';
+              }
+              else if (/\#/.test(tokens[i])) {
+                attr = 'id';
+              }
+              else {
+                throw new Error('Regular expressions can only be used with a class or ID selector -- strings that begin with a period (.) or pound sign (#).');
+              }
             }
 
             // put singular DOM references, but not HTMLCollections, in an array
@@ -788,7 +902,7 @@
 
       f.collectValues = function (c) {
         var props,
-            val;
+            fd_buffer = {};
 
         // remove empties from Array.split
         function filter (pa) {
@@ -804,33 +918,117 @@
           }
         } // end filter
 
-        function collect (prop_array, val) {
-          var len = prop_array.length,
-              i,
-              obj = instance.formData;
+        function collect (prop_array, selector) {
+          var i,
+              len = prop_array.length,
+              j,
+              j_len,
+              members,
+              member_buffer = [],
+              new_members,
+              val,
+              fd_scope = fd_buffer;
+
+          function initializeArray (sel, prop) {
+            var i,
+                len = bW(sel).length;
+
+            fd_scope[prop] = fd_scope[prop] || [];
+
+            for (i = 0; i < len; i += 1) {
+              fd_scope[prop].push({});
+            }
+            return fd_scope[prop];
+          } // end initializeArray
+
+          function populate (prop, val) {
+            var i,
+                len;
+
+            if (Array.isArray(fd_scope)) {
+              len = fd_scope.length;
+
+              for (i = 0; i < len; i += 1) {
+                fd_scope[i][prop] = val;
+              }
+            }
+            else if (!Array.isArray(fd_scope[prop])) {
+              fd_scope[prop] = val;
+            }
+          } // end populate
+
+          function mergeArrays (a, container) {
+            var i,
+                len = a.length;
+            
+            for (i = 0; i < len; i += 1) {
+              if (!Array.isArray(a[i])) {
+                container.push(a[i]);
+              }
+              else {
+                mergeArrays(a[i], container);
+              }
+            }
+          } // end mergeArrays
 
           for (i = 0; i < len; i += 1) {
-            if (/\d+/.test(prop_array[(i + 1)])) {
-              if (!Array.isArray(obj[prop_array[i]])) {
-                obj[prop_array[i]] = [{}];
+            // multiple values, unknown quantity
+            if (/##/.test(prop_array[(i + 1)])) {
+              // operating on a single node
+              if (!Array.isArray(fd_scope[prop_array[i]]) &&
+                  !Array.isArray(fd_scope)) {
+                initializeArray(selector, prop_array[i]);
+              }
+              // operating on multiple nodes
+              else if (Array.isArray(fd_scope)) {
+                new_members = [];
+                member_buffer = [];
+                members = fd_scope;
+                j_len = members.length;
+                for (j = 0; j < j_len; j += 1) {
+                  fd_scope = members[j];
+                  // initialize multiple nodes
+                  if (!fd_scope[prop_array[i]] ||
+                      fd_scope[prop_array[i]].length < bW(selector).length) {
+                    member_buffer.push(initializeArray(selector, prop_array[i]));
+                  }
+                  // corral multiple nodes
+                  else {
+                    member_buffer.push(fd_scope[prop_array[i]]);
+                  }
+                }
+                mergeArrays(member_buffer, new_members);
+                fd_scope = new_members;
+                continue;
+              }
+              fd_scope = fd_scope[prop_array[i]];
+              continue;
+            }
+            // a single value
+            if (prop_array[i] != '##') {
+              if (typeof fd_scope[prop_array[i]] != 'object') {
+                val = (i === (len - 1)) ? bW(key).val() : {};
+              }
+              populate(prop_array[i], val);
+              if (typeof val === 'object') {
+                fd_scope = fd_scope[prop_array[i]];
               }
             }
-            else {
-              if (typeof obj[prop_array[i]] != 'object') {
-                obj[prop_array[i]] = (i === (len - 1)) ? val : {};
-              }
-            }
-            obj = obj[prop_array[i]];
           }
         } // end collect
 
         for (key in c) {
-          props = c[key].split(/\.|\[|\]/);
+          if (typeof c[key] != 'string') {
+            throw new Error('The value for key ' + key + ' in the collector object must be a string');
+          }
+          else {
+            props = c[key].split(/\.|\[|\]/);
+          }
           filter(props);
-          val = bW(key).val();
 
-          collect(props, val);
+          collect(props, key, c[key]);
         }
+        instance.formData = fd_buffer;
       } // end collectValues
 
 
