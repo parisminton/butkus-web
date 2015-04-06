@@ -202,20 +202,17 @@
               j,
               len = list.length,
               cl_len,
-              specifier,
               rx = new RegExp(filter),
               class_list;
 
           for (i = 0; i < len; i += 1) {
-            specifier = list[i][getter];
-
             // class matches need to be exact, not partial
             if (getter === 'className') {
               class_list = list[i][getter].split(' ');
               cl_len = class_list.length;
 
               for (j = 0; j < cl_len; j += 1) {
-                if (specifier === class_list[j]) {
+                if (filter === class_list[j]) {
                   filtered_nodes.push(list[i]);
                 }
               }
@@ -452,6 +449,38 @@
       }
       return args;
     } // end parseArray
+
+    function copyProperties (donor, recipient) {
+      var key;
+
+      for (key in donor) {
+        if (Array.isArray(donor[key])) {
+          recipient[key] = [];
+          copyProperties(donor[key], recipient[key]);
+        }
+        else if (typeof donor[key] === 'object') {
+          recipient[key] = {};
+          copyProperties(donor[key], recipient[key]);
+        }
+        else {
+          recipient[key] = donor[key];
+        }
+      }
+    } // end copyProperties
+
+    function parameterize (obj) {
+      var params = [],
+          current,
+          key;
+
+      for (key in obj) {
+        current = params.length;
+        params[current] = encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
+        console.log(params[current]);
+      }
+      return '?' + params.join('&');
+
+    } // end parameterize
 
     function Bigwheel (elements) {
       var instance = this,
@@ -793,7 +822,49 @@
         form_obj = new BigwheelForm(form, submit, suffix);
         form_obj.init();
         return form_obj;
-      } // end bW.setForm
+      }, // end bW.setForm
+
+      ajax : function (url, ajaxSettings) {
+        var bWXHR = {
+          done : function (func) {
+                   if (func) { func(); }
+                 },
+          fail : function (func) {},
+          always : function (func) {},
+          then : function (func) {},
+          init : function () {
+            this.xhr = new XMLHttpRequest(sttngs);
+          }
+        },
+        settings = {
+          type : 'GET'
+        };
+
+        if (ajaxSettings && typeof ajaxSettings === 'object') {
+          copyProperties(ajaxSettings, settings);
+        }
+
+        if (typeof url === 'object') {
+          copyProperties(url, settings);
+        }
+
+        // the first argument here will trump any URL 
+        // specified in ajaxSettings
+        if (typeof url === 'string') {
+          /* ### TODO: Should this be sanitized? ### */
+          settings.url = url;
+        }
+
+        // bW.ajax({
+        //   type : 'POST',
+        //   url : 'http://somethingorother.com',
+        //   data : data_var,
+        //   success : functionThatConfirmsDataWasSaved,
+        //   error : functionThatExplainsTheError
+        // });
+        
+        return bWXHR;
+      } // end bW.ajax
 
     } // end Bigwheel prototype
 
@@ -1002,16 +1073,17 @@
                 continue;
               }
               fd_scope = fd_scope[prop_array[i]];
-              continue;
             }
-            // a single value
-            if (prop_array[i] != '##') {
-              if (typeof fd_scope[prop_array[i]] != 'object') {
-                val = (i === (len - 1)) ? bW(key).val() : {};
-              }
-              populate(prop_array[i], val);
-              if (typeof val === 'object') {
-                fd_scope = fd_scope[prop_array[i]];
+            else {
+              // a single value
+              if (prop_array[i] != '##') {
+                if (typeof fd_scope[prop_array[i]] != 'object') {
+                  val = (i === (len - 1)) ? bW(key).val() : {};
+                }
+                populate(prop_array[i], val);
+                if (typeof val === 'object') {
+                  fd_scope = fd_scope[prop_array[i]];
+                }
               }
             }
           }
@@ -1028,7 +1100,8 @@
 
           collect(props, key, c[key]);
         }
-        instance.formData = fd_buffer;
+
+        copyProperties(fd_buffer, instance.formData);
       } // end collectValues
 
 
