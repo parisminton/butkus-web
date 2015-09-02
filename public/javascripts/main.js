@@ -41,7 +41,24 @@ requirejs(['bigwheel'], function (bW) {
       form = bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input'),
       form_phases,
       next_button = bW('#next'),
-      add_set_button = bW('#addset');
+      add_set_button = bW('#addset'),
+      lamont,
+      query = {
+        url : 'http://musicbrainz.org/ws/2/artist/',
+        data : {
+          query : 'artist:Black Milk',
+          fmt : 'json'
+        },
+        dataType : 'json',
+        lamont : 'sanford',
+        success : function (data, stat) {
+          console.log('Electric Wire Hustle.');
+          console.log(JSON.parse(data));
+          console.log(stat);
+        }
+      };
+
+      lamont = bW.ajax(query);
 
   function testExercises () {
     console.log(bW('fieldset.exercise fieldset').find('input, textarea')
@@ -133,4 +150,20 @@ requirejs(['bigwheel'], function (bW) {
   form_state.init();
   form.addCollector(addSetData).collectValues(BUTKUS.collector);
   // console.log(bW('.exercise/\\d/$'));
+
+  /*
+  function logRequest () {
+    console.log('Bienvenidos!');
+    console.log(this.responseText);
+  }
+
+  var url = "http://musicbrainz.org/ws/2/artist/?query=artist:dilla",
+      golden = new XMLHttpRequest();
+
+  golden.addEventListener('load', logRequest);
+  golden.open('get', url, true);
+  golden.setRequestHeader('Accept', 'application/json');
+  golden.send();
+  */
+
 });
