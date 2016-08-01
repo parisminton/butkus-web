@@ -13,6 +13,64 @@
 
     bW.forms = bW.forms || [];
 
+    bW.uniq = function (list) {
+      var i,
+          len = list.length,
+          j,
+          j_len,
+          uniques = [],
+          is_unique;
+
+      function compare (l_val, u_val) {
+        var i,
+            len;
+            
+        if (/string|number|boolean/.test(typeof l_val) ||
+            /HTML|Node/.test(l_val.constructor.toString())) {
+          if (l_val === u_val) {
+            is_unique = false;
+          }
+        }
+        else if (Array.isArray(l_val)) {
+          len = l_val.length;
+          if (Array.isArray(u_val)) {
+            for (i = 0; i < len; i += 1) {
+              if (l_val[i] != u_val[i]) { break };
+              // if we reach the end of the loop and all values
+              // have been identical in the same sequence,
+              // this array is not unique
+              if (i === (len - 1)) {
+                is_unique = false;
+              }
+            } // end array comparison loop
+          }
+        }
+        else if (/Object/.test(l_val.constructor.toString())) {
+          if (JSON.stringify(l_val) === JSON.stringify(u_val)) {
+            is_unique = false;
+          }
+        }
+        return is_unique;
+      } // end compare
+
+      for (i = 0; i < len; i += 1) {
+        is_unique = true;
+        if (i === 0) {
+          uniques.push(list[i]);
+        }
+        j_len = uniques.length;
+        for (j = 0; j < j_len; j += 1) {
+          compare(list[i], uniques[j]);
+          if (!is_unique) { break };
+        }
+        if (is_unique) {
+          uniques.push(list[i]);
+        }
+      }
+      return uniques;
+    } // end bW.uniq
+
+
     // ### bW selector engine and constructor ###
     function selectElements (selectr, scope) {
       var getter;
@@ -24,22 +82,6 @@
             len = list.length,
             nodes,
             filtered_nodes = []; 
-
-        function storeUniques (list) {
-          var i,
-              len = list.length,
-              uniques = [];
-
-          for (i = 0; i < len; i += 1) {
-            if (uniques.some(function (u) {
-                return u === list[i];
-              })) {
-              continue;
-            }
-            uniques.push(list[i]);
-          }
-          return uniques;
-        } // end storeUniques
 
         function parseNodes (list) {
           var i,
@@ -159,7 +201,7 @@
             }
           }
           
-          patterns = storeUniques(patterns);
+          patterns = bW.uniq(patterns);
           p_len = patterns.length;
 
           for (i = 0; i < p_len; i += 1) {
@@ -239,7 +281,7 @@
           drillDown(list);
         }
 
-        scope = storeUniques(filtered_nodes);
+        scope = bW.uniq(filtered_nodes);
         return scope;
       } // end filterHTMLCollection
 
@@ -313,7 +355,7 @@
                 attr = 'id';
               }
               else {
-                throw new Error('Regular expressions can only be used with a class or ID selector -- strings that begin with a period (.) or pound sign (#).');
+                throw new Error('Bigwheel can only perform regular expression matches using a class or ID selector -- strings that contain a period (.) or pound sign (#).');
               }
             }
 
@@ -919,7 +961,7 @@
             fname = rx.exec(callback)[1];
           }
           else {
-            throw new Error('BigwheelForm.addCollector was passed anonymous function, but no name was passed.\n\nPlease pass a named function as its first argument or an additional name string as its second argument.');
+            throw new Error('BigwheelForm.addCollector was passed an anonymous function, but no name was passed.\n\nPlease pass a named function as its first argument or an additional name string as its second argument.');
           }
         }
         else {
@@ -931,7 +973,8 @@
       } // end bWF.addCollector
 
       f.collectValues = function (c) {
-        var props,
+        var i,
+            len = c.length,
             fd_buffer = {};
 
         // remove empties from Array.split
@@ -948,120 +991,72 @@
           }
         } // end filter
 
-        function collect (prop_array, selector) {
-          var i,
-              len = prop_array.length,
-              j,
-              j_len,
-              members,
-              member_buffer = [],
-              new_members,
-              val,
-              fd_scope = fd_buffer;
+        function collect (selector) {
+          var selected = bW(selector),
+              i,
+              len = selected.length;
 
-          function initializeArray (sel, prop) {
-            var i,
-                len = bW(sel).length;
+          function sort (selectr) {
+            var nodes = selectr.split(/\d+_+/),
+                indices = getIndices(selectr),
+                scope,
+                n_len;
 
-            fd_scope[prop] = fd_scope[prop] || [];
+            n_len = nodes.length;
 
-            for (i = 0; i < len; i += 1) {
-              fd_scope[prop].push({});
-            }
-            return fd_scope[prop];
-          } // end initializeArray
+            function getIndices (selectr) {
+              var indices = [],
+                  rx = /(\d+)_/g,
+                  match;
 
-          function populate (prop, val) {
-            var i,
-                len;
-
-            if (Array.isArray(fd_scope)) {
-              len = fd_scope.length;
-
-              for (i = 0; i < len; i += 1) {
-                fd_scope[i][prop] = val;
+              while ((match = rx.exec(selectr)) != null) {
+                indices.push(match[1]);
               }
-            }
-            else if (!Array.isArray(fd_scope[prop])) {
-              fd_scope[prop] = val;
-            }
-          } // end populate
+              return (indices.length) ? indices : false;
+            } // end getIndices
 
-          function mergeArrays (a, container) {
-            var i,
-                len = a.length;
-            
-            for (i = 0; i < len; i += 1) {
-              if (!Array.isArray(a[i])) {
-                container.push(a[i]);
-              }
-              else {
-                mergeArrays(a[i], container);
-              }
-            }
-          } // end mergeArrays
+            function store (nodez, indicez) {
+              var n,
+                  n_len = nodez.length,
+                  fscope = fd_buffer;
+
+              // drill as deep as necessary for this loop,
+              // but always start it from top-level fd_buffer
+              for (n = 0; n < n_len; n += 1) {
+                if (nodez[n]) {
+                  // no index; we expect this to be a flat node
+                  if (indicez[n] === undefined) {
+                    // fscope[nodez[n]] = bW('#' + selectr).val();
+                    fscope[nodez[n]] = document.querySelector('[name="' + selectr + '"]').value;
+                  }
+                  else {
+                    // initialize the array
+                    fscope[nodez[n]] = fscope[nodez[n]] || [];
+                    fscope[nodez[n]][indicez[n]] = 
+                      fscope[nodez[n]][indicez[n]] || {};
+                    fscope = fscope[nodez[n]][indicez[n]];
+                  }
+                } // end if (n_len)
+              } // end for loop 
+            } // end function store
+
+            store(nodes, indices);
+          } // end sort
 
           for (i = 0; i < len; i += 1) {
-            // multiple values, unknown quantity
-            if (/##/.test(prop_array[(i + 1)])) {
-              // operating on a single node
-              if (!Array.isArray(fd_scope[prop_array[i]]) &&
-                  !Array.isArray(fd_scope)) {
-                initializeArray(selector, prop_array[i]);
-              }
-              // operating on multiple nodes
-              else if (Array.isArray(fd_scope)) {
-                new_members = [];
-                member_buffer = [];
-                members = fd_scope;
-                j_len = members.length;
-                for (j = 0; j < j_len; j += 1) {
-                  fd_scope = members[j];
-                  // initialize multiple nodes
-                  if (!fd_scope[prop_array[i]] ||
-                      fd_scope[prop_array[i]].length < bW(selector).length) {
-                    member_buffer.push(initializeArray(selector, prop_array[i]));
-                  }
-                  // corral multiple nodes
-                  else {
-                    member_buffer.push(fd_scope[prop_array[i]]);
-                  }
-                }
-                mergeArrays(member_buffer, new_members);
-                fd_scope = new_members;
-                continue;
-              }
-              fd_scope = fd_scope[prop_array[i]];
-            }
-            else {
-              // a single value
-              if (prop_array[i] != '##') {
-                if (typeof fd_scope[prop_array[i]] != 'object') {
-                  val = (i === (len - 1)) ? bW(key).val() : {};
-                }
-                populate(prop_array[i], val);
-                if (typeof val === 'object') {
-                  fd_scope = fd_scope[prop_array[i]];
-                }
-              }
-            }
+            // TODO: Documentation should strongly encourage 
+            // that each field has a name
+            sort(selected[i].name);
           }
+
         } // end collect
 
-        for (key in c) {
-          if (typeof c[key] != 'string') {
-            throw new Error('The value for key ' + key + ' in the collector object must be a string');
-          }
-          else {
-            props = c[key].split(/\.|\[|\]/);
-          }
-          filter(props);
-
-          collect(props, key, c[key]);
+        for (i = 0; i < len; i += 1) {
+          collect(c[i]);
         }
 
         bW.copyProperties(fd_buffer, instance.formData);
-      } // end collectValues
+      } // end bWF.collectValues
 
 
       f.addToTests = function (test) {
@@ -1212,9 +1207,29 @@
 
     bX = new bWXHR();
 
+    function bWXHRError(message) {
+      this.message = message || 'Something went wrong with your AJAX request.';
+      this.name = 'bWXHRError';
+      this.stack = new Error().stack;
+    }
+    bWXHRError.prototype = new Error();
+    bWXHRError.constructor = Error;
+
     // XMLHttpRequest prep and transaction
     bX.xhr.addEventListener('load', function (data, status) {
-      settings.success(bX.xhr.responseText, bX.xhr.statusText);
+      if (/400/.test(bX.xhr.status)) {
+        // if there's a specialized message, show it
+        if (JSON.parse(bX.xhr.responseText).error) {
+          throw new bWXHRError(JSON.parse(bX.xhr.responseText).error);
+        }
+      }
+      else {
+        settings.success(bX.xhr.responseText, bX.xhr.statusText);
+      }
+      return bX;
+    });
+    bX.xhr.addEventListener('error', function (error, status) {
+      settings.error(bX.xhr);
       return bX;
     });
     bX.xhr.open(settings.method, settings.purl, settings.async);

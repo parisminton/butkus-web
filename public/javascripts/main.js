@@ -2,22 +2,22 @@ requirejs(['bigwheel'], function (bW) {
   var BUTKUS = BUTKUS || {
         user : {},
         session : {},
-        collector : {
-          '#current_weight' : 'current_weight',
-          '#date' : 'date',
-          '#day' : 'day',
-          '#time' : 'time',
-          'fieldset.exercise/\\d+/$' : 'exercises[##]',
-          '#exercise/\\d+/_name' : 'exercises[##].name',
-          '#exercise/\\d+/_stretched_before' : 'exercises[##].stretched_before',
-          'fieldset.exercise/\\d+/_set/\\d+/' : 'exercises[##].sets[##]',
-          '#exercise/\\d+/_set/\\d+/_weight' : 'exercises[##].sets[##].weight',
-          '#exercise/\\d+/_set/\\d+/_reps' : 'exercises[##].sets[##].reps',
-          '#exercise/\\d+/_set/\\d+/_rest' : 'exercises[##].sets[##].rest',
-          '#exercise/\\d+/_set/\\d+/_comment' : 'exercises[##].sets[##].comment',
-          '#exercise/\\d+/_stretched_after' : 'exercises[##].stretched_after',
-          '#immediate_protein' : 'immediate_protein'
-        }
+        collector : [
+          '#current_weight',
+          '#date',
+          '#day',
+          '#time',
+          'fieldset.exercise/\\d+/$',
+          '#exercise/\\d+/_name',
+          '#exercise/\\d+/_stretched_before',
+          'fieldset.exercise/\\d+/_set/\\d+/',
+          '#exercise/\\d+/_set/\\d+/_weight',
+          '#exercise/\\d+/_set/\\d+/_reps',
+          '#exercise/\\d+/_set/\\d+/_rest',
+          '#exercise/\\d+/_set/\\d+/_comment',
+          '#exercise/\\d+/_stretched_after',
+          '#immediate_protein'
+        ]
       },
 
       form_state = {
@@ -39,34 +39,28 @@ requirejs(['bigwheel'], function (bW) {
       },
 
       form = bW('#log').setForm('#save', 'test').setRequiredFields('.exercise input'),
-      form_phases,
       next_button = bW('#next'),
       add_set_button = bW('#addset'),
       lamont,
       query = {
         url : 'http://musicbrainz.org/ws/2/artist/',
         data : {
-          query : 'artist:Black Milk',
+          query : 'artist:Georgia\ Anne\ Muldrow',
           fmt : 'json'
         },
         dataType : 'json',
         lamont : 'sanford',
         success : function (data, stat) {
-          console.log('Electric Wire Hustle.');
+          console.log(this.data.query);
           console.log(JSON.parse(data));
           console.log(stat);
+        },
+        error : function (err) {
+          console.log('I pray every day.');
         }
       };
 
-      lamont = bW.ajax(query);
-
-  function testExercises () {
-    console.log(bW('fieldset.exercise fieldset').find('input, textarea')
-      .each(function (ndx, elem) {
-        bW(elem).addClass('chicken');
-      }));
-  }
-  bW('h1').listenFor('click', testExercises);
+      // lamont = bW.ajax(query);
 
   function advanceForm () {
     form_state.current_ndx += 1;
@@ -94,12 +88,6 @@ requirejs(['bigwheel'], function (bW) {
     if (!BUTKUS.bout) { addBout() }
     BUTKUS.bout.current_weight = bW('#current_weight').val();
   }
-
-  function collect () {
-  }
-
-  // collect[elem.id]();
-  // collect['#set0_weight']();
 
   function addSetData (ndx) {
     if (!BUTKUS.bout) { addBout() }
@@ -149,7 +137,6 @@ requirejs(['bigwheel'], function (bW) {
   next_button.listenFor('click', showCurrentFormPhase, true);
   form_state.init();
   form.addCollector(addSetData).collectValues(BUTKUS.collector);
-  // console.log(bW('.exercise/\\d/$'));
 
   /*
   function logRequest () {
