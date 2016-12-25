@@ -1,14 +1,21 @@
 {
-  "name": "application-name",
+  "name": "butkus-web",
   "version": "0.0.1",
+  "description": "Tracks my physical training.",
+  "main": "butkus.js",
   "private": true,
   "scripts": {
     "start": "node app.js"
   },
+  "keywords": [
+    "canary"
+  ],
   "dependencies": {
-    "express": "3.4.7",
-    "jade": "*",
-    "stylus": "*",
-    "requirejs": "*"
+    "express": "^4.14.0",
+    "pg": "^6.1.2",
+    "pg-hstore": "^2.3.2",
+    "pug": "2.0.0-alpha6",
+    "sequelize": "^3.28.0",
+    "stylus": "*"
   }
 }
