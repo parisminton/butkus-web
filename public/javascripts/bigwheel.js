@@ -1123,7 +1123,7 @@
 
       f.submitHandler = function (evt) {
         evt.preventDefault();
-        collectValues();
+        f.collectValues();
         areFieldsEmpty();
         /*
         if (f.readyToSubmitForm()) {
