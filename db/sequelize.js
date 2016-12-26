@@ -1,6 +1,6 @@
 var Sequelize = require('sequelize');
 
-sequelize = new Sequelize ('butkus', 'postgres', 'd1anaross', {
+sequelize = new Sequelize ('butkus', 'postgres', 'blahblahblah', {
   host: 'localhost',
   dialect: 'postgres',
 
