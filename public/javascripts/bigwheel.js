@@ -113,18 +113,18 @@
         } // end drillDown
 
         // an inefficient last resort for when the attribute selector is not scoped
-        function scanAllAttributes (attr) {
-          var body = document.getElementsByTagName('body')[0],
+        function scanAllAttributes (attr, start_node) {
+          var start_node = start_node || document.getElementsByTagName('html')[0],
               collection = [];
 
           function testForAttribute (node) {
             var j,
                 len;
 
-            if (node.nodeType === 1 && node.hasAttribute(attr)) {
+            if (/1|9/.test(node.nodeType) && node.hasAttribute(attr)) {
               collection.push(node);
             }
-            if (node.nodeType === 1 && node.hasChildNodes()) {
+            if (/1|9/.test(node.nodeType) && node.hasChildNodes()) {
               j = 0;
               len = node.childNodes.length;
 
@@ -134,29 +134,41 @@
             }
           }
 
-          testForAttribute(body);
+          // the document node doesn't have the hasAttribute method
+          if (start_node === document) {
+            start_node = document.getElementsByTagName('html')[0];
+          }
+
+          testForAttribute(start_node);
 
           return list = collection;
         } // end scanAllAttributes
 
-        function testAttribute (list) {
+        function findAttribute (list) {
           var i,
-              len = list.length;
+              len = list.length,
+              node_container = [];
 
-          if (list[0] === document && len === 1) {
-            list = scanAllAttributes(filter);
+          if (getter === 'drillForAttribute') {
+            for (i = 0; i < len; i += 1) {
+              list = scanAllAttributes(filter, list[i]);
+              node_container = node_container.concat(list);
+            }
+            list = node_container;
+          }
+          else if (getter === 'testForAttribute') {
           }
 
           len = list.length;
 
           for (i = 0; i < len; i += 1) {
-            if (list[i][getter]) {
-              if (list[i][getter](filter)) {
+            if (list[i].hasAttribute) {
+              if (list[i].hasAttribute(filter)) {
                 filtered_nodes.push(list[i]);
               }
             }
           }
-        } // end testAttribute
+        } // end findAttribute
 
         function matchAttribute (list) {
           var i,
@@ -268,8 +280,8 @@
         if (/className|id/.test(getter)) {
           matchSpecifier(list);
         }
-        else if (/hasAttribute/.test(getter)) {
-          testAttribute(list);
+        else if (/drillForAttribute|testForAttribute/.test(getter)) {
+          findAttribute(list);
         }
         else if (/matchAttribute/.test(getter)) {
           matchAttribute(list);
@@ -293,7 +305,7 @@
             retained_scope = scope;
 
         function select (s) {
-          var tokens = s.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|\s+|\.|[a-zA-Z0-9_-]\[[a-zA-Z0-9_-]|\s+\[|^\[|[\|\*\^\$\~\!]?=["']/g) || [],
+          var tokens = s.match(/[a-zA-Z0-9_-]\.[a-zA-Z0-9_-]|\s+\.|^\.|[a-zA-Z0-9_-]#[a-zA-Z0-9_-]|\s+#|^#|[a-zA-Z0-9_-]\[[a-zA-Z0-9_-]|\s+\[|^\[|[\|\*\^\$\~\!]?=["']|\s+|\./g) || [],
               flags = s.split(/\s+|\.|#|\[|[\|\*\^\$\~\!]?=["']|["']?\]/g) || [],
               attr,
               filtered = [],
@@ -336,9 +348,14 @@
               getter = 'id';
             }
 
-            if (/\[/.test(tokens[i])) {
+            if (/\s+\[|^\[/.test(tokens[i])) {
               attr = flags[i];
-              getter = 'hasAttribute';
+              getter = 'drillForAttribute';
+            }
+            
+            if (/[a-zA-Z0-9_-]\[[a-zA-Z0-9_-]/.test(tokens[i])) {
+              attr = flags[i];
+              getter = 'testForAttribute';
             }
             
             if (/[\|\*\^\$\~\!]?=/.test(tokens[i])) {
@@ -391,7 +408,9 @@
         selectFromString(selectr);
       }
       else if (/HTML/.test(selectr.constructor.toString())) {
-        if (!selectr.length) { selectr = [selectr] };
+        if (!selectr.length || 
+            // HTML select elements have a length property
+            /HTMLSelectElement/.test(selectr.constructor.toString())) { selectr = [selectr] };
         scope = selectr;
       }
 
@@ -510,15 +529,29 @@
       }
     } // end bW.copyProperties
 
+    // would JSON.stringify handle this?
+    // no, it doesn't.
     bW.parameterize = function (obj) {
       var params = [],
           current,
-          key;
+          key,
+          dimension;
 
-      for (key in obj) {
-        current = params.length;
-        params[current] = encodeURIComponent(key) + '=' + encodeURIComponent(obj[key]);
-      }
+      function parse (ob, dim) {
+        for (key in ob) {
+          dimension = (dim) ? dim + '[' + key + ']' : key;
+
+          if (typeof ob[key] === 'object') {
+            parse(ob[key], dimension);
+            continue;
+          }
+
+          current = params.length;
+          params[current] = encodeURIComponent(dimension) + '=' + encodeURIComponent(ob[key]);
+        }
+      } // end parse
+
+      parse(obj);
       return '?' + params.join('&');
 
     } // end bW.parameterize
@@ -650,43 +683,72 @@
         function listen (elem, evt, func, capt, aargs) {
           var instance = this;
 
-          function add () {
-            // W3C-compliant browsers
-            if (elem.addEventListener) {
-              if (!instance.listener_model) { instance.listener_model = 'addEventListener'; }
-              elem.addEventListener(evt, func, capt);
-            }
-            // IE pre-9
-            else {
-              if (elem.attachEvent) { 
-                if (!instance.listener_model) { instance.listener_model = 'attachEvent'; }
-                elem.attachEvent(('on' + evt), func);
-              }
-              // fall back to DOM level 0
-              else { 
-                if (!instance.listener_model) { instance.listener_model = 'onevent'; }
-                elem['on' + evt] = func;
-              }
-            }
-          } // end add
-
           // store these values in a registry, so we can retrieve them
           function register () {
-            var rx = /function ([a-zA-Z-_]*)\(/;
+            var er = instance.event_registry,
+                count = 0,
+                queued_func;
+
+            function add (f) {
+              // W3C-compliant browsers
+              if (elem.addEventListener) {
+                if (!instance.listener_model) { instance.listener_model = 'addEventListener'; }
+                elem.addEventListener(evt, f, capt);
+              }
+              // IE pre-9
+              else {
+                if (elem.attachEvent) { 
+                  if (!instance.listener_model) { instance.listener_model = 'attachEvent'; }
+                  elem.attachEvent(('on' + evt), f);
+                }
+                // fall back to DOM level 0
+                else { 
+                  if (!instance.listener_model) { instance.listener_model = 'onevent'; }
+                  elem['on' + evt] = f;
+                }
+              }
+            } // end add
 
             // ### more valuable for the key to be a unique ID or the event type string?
-            instance.event_registry[elem.ndx] = {};
-            instance.event_registry[elem.ndx][evt] = {
+            er[elem.ndx] = er[elem.ndx] || {};
+            er[elem.ndx][evt] = er[elem.ndx][evt] || {
               elem : elem,
               evt : evt,
               func : func,
+              handler_queue : [],
               capt : capt,
               aargs : aargs
             };
-            instance.event_registry.length += 1;
+
+            if (er[elem.ndx][evt].handler_queue.length >= 1) {
+              er[elem.ndx][evt].handler_queue.push(func);
+            }
+            else {
+              er[elem.ndx][evt].handler_queue = [func];
+            }
+
+            // number of registered events is the length
+            for (e in er[elem.ndx]) {
+              count += 1;
+            }
+            er.length = count;
+
+            queued_func = (function (func_array) {
+              return function (evt) {
+                var i,
+                    len = func_array.length;
+
+                for (i = 0; i < len; i += 1) {
+                  if (typeof func_array[i] === 'function') {
+                    func_array[i](evt);
+                  }
+                }
+              }
+            }(er[elem.ndx][evt].handler_queue)) // end queuedFunc
+
+            add(queued_func);
           } // end register
 
-          add();
           register();
         } // end listen
 
@@ -881,7 +943,6 @@
       instance.length = 1;
       instance.fields = {};
       instance.required_fields = [];
-      instance.collectors = {};
       instance.formData = {};
 
       // ### bWF HELPERS  ###
@@ -894,11 +955,12 @@
 
       function areFieldsEmpty () {
         var i,
-            empty = false;
+            empty = false,
+            req = instance.required_fields;
 
-        for (i = 0; i < instance.required_fields.length; i += 1) {
-          if (instance.required_fields[i].value === '') {
-            bruiseField(instance.required_fields[i]);
+        for (i = 0; i < req.length; i += 1) {
+          if (req[i].value === '') {
+            bruiseField(req[i]);
             empty = true;
           }
         }
@@ -922,10 +984,16 @@
       for (i = 0; i < fields.length; i += 1) {
         // exclude the submit button
         if (fields[i] === instance.submit) {
-          fields.splice(i, 1);
+          continue;
         }
         else {
-          instance.fields[fields[i].name] = fields[i];
+          if (!fields[i].name) {
+            console.error(fields[i]);
+            throw new Error('^^^ A "name" property is required for each input element within the "bW-form-' + class_suffix + '" form.');
+          }
+          else {
+            instance.fields[fields[i].name] = fields[i];
+          }
         }
       }
       
@@ -952,30 +1020,8 @@
         if (instance.fields[name]) { return instance.fields[name].value; }
       } // end bWF.val
 
-      f.addCollector = function (callback, cbname) {
-        var rx = /^function ([a-zA-Z_-]+)\(.*\)/,
-            fname;
-
-        if (!cbname) {
-          if (rx.test(callback)) {
-            fname = rx.exec(callback)[1];
-          }
-          else {
-            throw new Error('BigwheelForm.addCollector was passed an anonymous function, but no name was passed.\n\nPlease pass a named function as its first argument or an additional name string as its second argument.');
-          }
-        }
-        else {
-          fname = cbname;
-        }
-
-        instance.collectors[fname] = callback;
-        return instance;
-      } // end bWF.addCollector
-
-      f.collectValues = function (c) {
-        var i,
-            len = c.length,
-            fd_buffer = {};
+      f.collectValues = function () {
+        var fd_buffer = {};
 
         // remove empties from Array.split
         function filter (pa) {
@@ -1038,7 +1084,7 @@
                   }
                 } // end if (n_len)
               } // end for loop 
-            } // end function store
+            } // end store
 
             store(nodes, indices);
           } // end sort
@@ -1051,8 +1097,8 @@
 
         } // end collect
 
-        for (i = 0; i < len; i += 1) {
-          collect(c[i]);
+        for (var name in instance.fields) {
+          collect(instance.fields[name]);
         }
 
         bW.copyProperties(fd_buffer, instance.formData);
@@ -1098,14 +1144,10 @@
       } // end readyToSubmitForm
 
       f.sendData = function () {
-        f.collectValuesAsJSON();
-        f.collectImagesAsJSON();
-        f.collectLocationDescriptionsAsJSON();
-
         ajaxOpts = {
           type: 'POST',
-          url: url_goes_here,
-          data: f.formData,
+          url: 'update',
+          data: instance.formData,
           success: function (data) {
             f.showThanks();
           },
@@ -1124,7 +1166,8 @@
       f.submitHandler = function (evt) {
         evt.preventDefault();
         f.collectValues();
-        areFieldsEmpty();
+        console.log(instance.formData);
+        f.sendData();
         /*
         if (f.readyToSubmitForm()) {
           f.sendData();

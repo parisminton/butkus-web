@@ -1,23 +1,7 @@
 requirejs(['bigwheel'], function (bW) {
   var BUTKUS = BUTKUS || {
         user : {},
-        session : {},
-        collector : [
-          '#current_weight',
-          '#date',
-          '#day',
-          '#time',
-          'fieldset.exercise/\\d+/$',
-          '#exercise/\\d+/_name',
-          '#exercise/\\d+/_stretched_before',
-          'fieldset.exercise/\\d+/_set/\\d+/',
-          '#exercise/\\d+/_set/\\d+/_weight',
-          '#exercise/\\d+/_set/\\d+/_reps',
-          '#exercise/\\d+/_set/\\d+/_rest',
-          '#exercise/\\d+/_set/\\d+/_comment',
-          '#exercise/\\d+/_stretched_after',
-          '#immediate_protein'
-        ]
+        session : {}
       },
 
       form_state = {
@@ -136,7 +120,6 @@ requirejs(['bigwheel'], function (bW) {
   add_set_button.listenFor('click', addSet, true);
   next_button.listenFor('click', showCurrentFormPhase, true);
   form_state.init();
-  form.addCollector(addSetData).collectValues(BUTKUS.collector);
 
   /*
   function logRequest () {
