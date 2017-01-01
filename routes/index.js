@@ -1,4 +1,4 @@
-// var sequelize = require('../db/sequelize');
+var sequelize = require('../db/sequelize');
 
 // home page
 exports.index = {
@@ -29,16 +29,7 @@ exports.log = {
   },
 
   update : function (req, res) {
-    /*
-    mongo.saveBout({
-      current_weight : req.param('current_weight'),
-      day : req.param('day'),
-      immediate_protein : req.param('immediate_protein')
-    });
-    // ### should redirect happen here or in saveBout? ###
-    // ### should it happen at all? ###
-    res.render('boogers');
-    */
+    sequelize.saveSet(req.query.exercise[1].set[1]);
   },
 
   delete : function (req, res) {
