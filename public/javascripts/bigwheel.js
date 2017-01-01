@@ -1145,8 +1145,8 @@
 
       f.sendData = function () {
         ajaxOpts = {
-          type: 'POST',
-          url: 'update',
+          method: 'POST',
+          url: '/log',
           data: instance.formData,
           success: function (data) {
             f.showThanks();
@@ -1281,7 +1281,7 @@
     bX.xhr.send();
 
     // bW.ajax({
-    //   type : 'POST',
+    //   method : 'POST',
     //   url : 'http://somethingorother.com',
     //   data : data_var,
     //   success : functionThatConfirmsDataWasSaved,
