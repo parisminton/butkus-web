@@ -51,14 +51,28 @@ block content
             option(value='pullups') Pullups
             option(value='pushups') Pushups
 
-        div#starttimer.button
-          p Start the timer.
+        div#timer0
+          button#timer0_start Start the timer.
+
+          p#timer0_clock.clock 00:00:00.00
+
+          button#timer0_reset Reset the timer.
+
+        div.field
+          input(type='hidden', name='exercise0_start_time', id='exercise0_start_time' value="0")
+
+        div.field
+          input(type='hidden', name='exercise0_duration', id='exercise0_duration' value="0")
 
         div.field
           label(for='exercise0_stretched_before') Stretched before?
           select(name='exercise0_stretched_before', id='exercise0_stretched_before')
             option(value='true') Yes
             option(value='false') No
+
+        div.field
+          label(for='exercise0_time_limit') Time limit
+          input(type='text', name='exercise0_time_limit', id='exercise0_time_limit')
 
         fieldset.exercise0_set0
           legend Set 1
@@ -96,19 +110,34 @@ block content
             option(value='ezbar_curls') Curls with EZ-bar
             option(value='dips') Dips
             option(value='dumbbell_curls') Dumbbell curls
-            option(value='dumbbell_raises') Dumbbell raises
+            option(value='dumbbell_side_raises') Dumbbell side raises
+            option(value='dumbbell_front_raises') Dumbbell front raises
             option(value='flat_bench') Flat bench
             option(value='pullups') Pullups
             option(value='pushups') Pushups
 
-        div#starttimer.button
-          p Start the timer.
+        div#timer1
+          button#timer1_start Start the timer.
+
+          p#timer1_clock.clock 00:00:00.00
+
+          button#timer1_reset Reset the timer.
+
+        div.field
+          input(type='hidden', name='exercise1_start_time', id='exercise1_start_time' value="0")
+
+        div.field
+          input(type='hidden', name='exercise1_duration', id='exercise1_duration' value="0")
 
         div.field
           label(for='exercise1_stretched_before') Stretched before?
           select(name='exercise1_stretched_before', id='exercise1_stretched_before')
             option(value='true') Yes
             option(value='false') No
+
+        div.field
+          label(for='exercise1_time_limit') Time limit
+          input(type='text', name='exercise1_time_limit', id='exercise1_time_limit')
 
         fieldset.exercise1_set0
           legend Set 1
@@ -164,19 +193,34 @@ block content
             option(value='ezbar_curls') Curls with EZ-bar
             option(value='dips') Dips
             option(value='dumbbell_curls') Dumbbell curls
-            option(value='dumbbell_raises') Dumbbell raises
+            option(value='dumbbell_side_raises') Dumbbell side raises
+            option(value='dumbbell_front_raises') Dumbbell front raises
             option(value='flat_bench') Flat bench
             option(value='pullups') Pullups
             option(value='pushups') Pushups
 
-        div#starttimer.button
-          p Start the timer.
+        div#timer2
+          button#timer2_start Start the timer.
+
+          p#timer2_clock.clock 00:00:00.00
+
+          button#timer2_reset Reset the timer.
+
+        div.field
+          input(type='hidden', name='exercise2_start_time', id='exercise2_start_time' value="0")
+
+        div.field
+          input(type='hidden', name='exercise2_duration', id='exercise2_duration' value="0")
 
         div.field
           label(for='exercise2_stretched_before') Stretched before?
           select(name='exercise2_stretched_before', id='exercise2_stretched_before')
             option(value='true') Yes
             option(value='false') No
+
+        div.field
+          label(for='exercise2_time_limit') Time limit
+          input(type='text', name='exercise2_time_limit', id='exercise2_time_limit')
 
         fieldset.exercise2_set0
           legend Set 1
