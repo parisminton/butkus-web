@@ -29,7 +29,7 @@ exports.log = {
   },
 
   update : function (req, res) {
-    sequelize.saveSet(req.query.exercise[1].set[1]);
+    sequelize.saveBout(req.query);
   },
 
   delete : function (req, res) {
