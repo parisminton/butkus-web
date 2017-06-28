@@ -929,6 +929,7 @@
 
         form_obj = new BigwheelForm(form, submit, suffix);
         form_obj.init();
+
         return form_obj;
       }, // end bW.setForm
 
@@ -1020,6 +1021,11 @@
 
         return instance;
       } // end bWF.setRequiredFields
+
+      f.setValidators = function (obj) {
+        for (field in obj) {
+        }
+      } // end setValidators
 
       f.val = function (name) {
         if (instance.fields[name]) { return instance.fields[name].value; }
@@ -1151,6 +1157,7 @@
       f.sendData = function () {
         ajaxOpts = {
           method: 'POST',
+          data_type: 'json',
           url: '/log',
           data: instance.formData,
           success: function (data) {
@@ -1195,19 +1202,31 @@
     var bWXHR = function () {
       this.xhr = new XMLHttpRequest();
       this.setup = function (s) {
-        var dataTypes = {
+        var data_types = {
           json : 'application/json',
           xml : 'application/xml', 
           html : 'text/html',
           text : 'text/plain',
           script : 'text/javascript'
           // jsonp : create a new <script> tag
-        };
+        },
+        header_type;
 
-        if (s.dataType) {
-          this.xhr.setRequestHeader('Accept', dataTypes[s.dataType]);
+        if (/GET/i.test(s.method)) {
+          header_type = 'Accept';
         }
-      },
+        else if (/POST/i.test(s.method)) {
+          header_type = 'Content-Type';
+        }
+
+        if (s.data_type) {
+          this.xhr.setRequestHeader(header_type, data_types[s.data_type]);
+        }
+        else { // default to JSON
+          this.xhr.setRequestHeader(header_type, 'application/json');
+        }
+      } // end bWXHR.setup
+
       this.done = function (func) {
         console.log('We must be in love.');
         console.log(this);
@@ -1215,16 +1234,20 @@
           console.log(func);
         }
         // if (func) { func(); }
-      },
-      this.fail = function (func) {},
-      this.always = function (func) {},
-      this.then = function (func) {}
-    },
+      };
+      this.fail = function (func) {};
+      this.always = function (func) {};
+      this.then = function (func) {};
+
+    }, // end bWXHR constructor
+
+    // defaults
     settings = {
-      method : 'get',
+      method : 'GET',
+      data_type : 'json',
       async : true
     },
-    query_params = '',
+    query = '',
     bX;
 
     if (ajaxSettings && typeof ajaxSettings === 'object') {
@@ -1243,10 +1266,10 @@
     }
     /* ### BELOW THIS POINT, ajaxSettings HAS BEEN MAPPED TO settings ### */
 
-    // prepare the URL -- concatenate base and query parameters
-    if (settings.data && typeof settings.data === 'object') {
-      query_params = bW.parameterize(settings.data);
-      settings.purl = settings.url + query_params; 
+    // no JSON -- concatenate base and query parameters key/value style
+    if (settings.data && typeof settings.data === 'object' && !/JSON/i.test(settings.data_type)) {
+      query = bW.parameterize(settings.data);
+      settings.url += query; 
     }
 
     if (typeof settings.success != 'function') {
@@ -1280,19 +1303,17 @@
       settings.error(bX.xhr);
       return bX;
     });
-    bX.xhr.open(settings.method, settings.purl, settings.async);
-    // modifying headers, etc. has to happen after opening but before sending
+    bX.xhr.open(settings.method, settings.url, settings.async);
     bX.setup(settings);
-    bX.xhr.send();
-
-    // bW.ajax({
-    //   method : 'POST',
-    //   url : 'http://somethingorother.com',
-    //   data : data_var,
-    //   success : functionThatConfirmsDataWasSaved,
-    //   error : functionThatExplainsTheError
-    // });
     
+    // modifying headers, etc. has to happen after opening but before sending
+    if (/POST/i.test(settings.method) && /JSON/i.test(settings.data_type)) {
+      bX.xhr.send(JSON.stringify(settings.data));
+    }
+    else {
+      bX.xhr.send();
+    }
+
     return bX;
   }; // end ajaxFunc
 

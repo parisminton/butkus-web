@@ -29,7 +29,7 @@ exports.log = {
   },
 
   update : function (req, res) {
-    sequelize.saveBout(req.query);
+    sequelize.saveBout(req);
   },
 
   delete : function (req, res) {
