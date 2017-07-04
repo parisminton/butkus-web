@@ -75,8 +75,8 @@ Exercise = sequelize.define('exercise', {
     field: 'time_limit'
   },
   bout_id: {
-    type: Sequelize.STRING, // ??
-    field: 'bout_id' // This should be the current Bout.bout_id
+    type: Sequelize.STRING,
+    field: 'bout_id'
   }
 });
 
@@ -114,8 +114,8 @@ Set = sequelize.define('set', {
     field: 'weight'
   },
   exercise_id: {
-    type: Sequelize.STRING, // ??
-    field: 'exercise_id' // Should be the current Exercise.exercise_id
+    type: Sequelize.STRING,
+    field: 'exercise_id'
   }
 }); 
 
@@ -124,38 +124,73 @@ saveBout = function (data) {
       exercise_data = [],
       set_data = [],
       ex = data.body.exercise,
-      i,
-      j;
+      i;
 
-  function saveBoutTables () {
-    for (i = 0; i < set_data.length; i += 1) {
-      Set.create(set_data[i]);
-    }
-    for (i = 0; i < exercise_data.length; i += 1) {
-      Exercise.create(exercise_data[i]);
-    }
+  function saveTables () {
+    Set.bulkCreate(set_data);
+    Exercise.bulkCreate(exercise_data);
     Bout.create(bout_data);
     // should this function return a value?
-  } // end saveBoutTables
+  } // end saveTables
+
+  function parseExerciseData (ex) {
+    var key,
+        ex_index;
+
+    exercise_data.push({
+      bout_id : bout_data.bout_id,
+      exercise_id : createID(ex.name)
+    });
+
+    ex_index = (exercise_data.length - 1);
+
+    for (key in ex) {
+      // we need all other exercise fields to be populated
+      // before we parse 'set', so exclude it from this loop
+      if (key != 'set') {
+        exercise_data[ex_index][key] = ex[key];
+      }
+    }
+    parseSetData(ex['set']);
+  } // end parse ExerciseData
+
+  function parseSetData (set) {
+    var i,
+        key,
+        sd_index;
+
+    for (i = 0; i < set.length; i += 1) {
+      set_data.push({
+        exercise_id : exercise_data[(exercise_data.length - 1)].exercise_id,
+        set_id : createID(exercise_data[(exercise_data.length - 1)].name, i.toString())
+      });
+
+      sd_index = (set_data.length - 1);
+
+      for (key in set[i]) {
+        set_data[sd_index][key] = set[i][key];
+      }
+    }
+  } // end parseSetData
+
+  function createID (exercise_name, set_index) {
+    var id = data.body.date,
+        time = '_' + new Date().toLocaleTimeString().replace(' ', '_'),
+        location = '_marcusgarvey';
+
+    id += time + location;
+    if (exercise_name) {
+      id += '_' + exercise_name;
+    }
+    if (set_index) {
+      id += '_' + set_index;
+    }
+    return id;
+  } // end createID
 
   sequelize.sync().then(function () {
     var bout_id,
         exercise_id;
-
-    function createID (exercise_name, set_index) {
-      var id = data.body.date,
-          time = '_' + new Date().toLocaleTimeString().replace(' ', '_'),
-          location = '_marcusgarvey';
-
-      id += time + location;
-      if (exercise_name) {
-        id += '_' + exercise_name;
-      }
-      if (set_index) {
-        id += '_' + set_index;
-      }
-      return id;
-    } // end createID
 
     // parse bouts data
     for (key in data.body) {
@@ -165,36 +200,12 @@ saveBout = function (data) {
       }
     }
 
-    // parse exercise data
     for (i = 0; i < ex.length; i += 1) {
-
-      for (key in ex[i]) {
-        exercise_data.push({ // initialize the row with IDs
-          bout_id : bout_data.bout_id,
-          exercise_id : createID(ex[i].name)
-        });
-
-        if (key != 'set') {
-          exercise_data[i][key] = ex[i][key];
-        }
-
-        else { // parse set data
-          set_data.push({ // initialize the row with IDs
-            exercise_id : exercise_data[i].exercise_id
-          }); 
-          for (j = 0; j < ex[i][key].length; j += 1) {
-            set_data[j].set_id = createID(ex[i].name, j.toString());
-
-            for (s_key in ex[i][key][j]) {
-              set_data[j][s_key] = ex[i][key][j][s_key];
-            }
-          }
-        } // end set_data iteration
-      } // end exercise_data iteration
+      parseExerciseData(ex[i]);
     }
 
     // save everything to the database
-    return saveBoutTables();
+    return saveTables();
   });
 } // end saveBout
 

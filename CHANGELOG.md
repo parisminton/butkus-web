@@ -4,6 +4,11 @@ butkus-web
 Changelog
 ---------
 
+*7/4/17*
+
+- Saving to Postgres using Sequelize works.
+
+
 *8/1/16*
 
 - Changed the way form values are collected. Instead of a collector object, use a collector array.
