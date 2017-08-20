@@ -127,10 +127,13 @@ saveBout = function (data) {
       i;
 
   function saveTables () {
-    Set.bulkCreate(set_data);
-    Exercise.bulkCreate(exercise_data);
-    Bout.create(bout_data);
-    // should this function return a value?
+    return sequelize.transaction(function (trans) {
+      return Promise.all([
+        Set.bulkCreate(set_data, { transaction : trans }),
+        Exercise.bulkCreate(exercise_data, { transaction : trans }),
+        Bout.create(bout_data, { transaction : trans })
+      ]);
+    });
   } // end saveTables
 
   function parseExerciseData (ex) {
@@ -188,7 +191,7 @@ saveBout = function (data) {
     return id;
   } // end createID
 
-  sequelize.sync().then(function () {
+  return sequelize.sync().then(function () {
     var bout_id,
         exercise_id;
 
@@ -204,8 +207,7 @@ saveBout = function (data) {
       parseExerciseData(ex[i]);
     }
 
-    // save everything to the database
-    return saveTables();
+    saveTables();
   });
 } // end saveBout
 

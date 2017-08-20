@@ -29,7 +29,15 @@ exports.log = {
   },
 
   update : function (req, res) {
-    sequelize.saveBout(req);
+    sequelize.saveBout(req).then(
+      function (result) { // success
+        res.sendStatus(200);
+        return result;
+      },
+      function (error) { // failure
+        throw error;
+      }
+    );
   },
 
   delete : function (req, res) {
