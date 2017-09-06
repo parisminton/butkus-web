@@ -1,4 +1,4 @@
-var sequelize = require('../db/sequelize');
+var pouchdb = require('../db/pouchdb');
 
 // home page
 exports.index = {
@@ -29,15 +29,7 @@ exports.log = {
   },
 
   update : function (req, res) {
-    sequelize.saveBout(req).then(
-      function (result) { // success
-        res.sendStatus(200);
-        return result;
-      },
-      function (error) { // failure
-        throw error;
-      }
-    );
+    pouchdb.saveBout(req.body);
   },
 
   delete : function (req, res) {

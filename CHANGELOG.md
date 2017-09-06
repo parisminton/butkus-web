@@ -4,6 +4,11 @@ butkus-web
 Changelog
 ---------
 
+*9/4/17*
+
+- We need offline-first storage. So out with Postgres, in with PouchDB. Using ugly shortcuts, saving to CouchDB works.
+
+
 *7/4/17*
 
 - Saving to Postgres using Sequelize works.
