@@ -29,7 +29,15 @@ exports.log = {
   },
 
   update : function (req, res) {
-    pouchdb.saveBout(req.body);
+    pouchdb.saveBout(req.body).then(
+      function (result) { // success
+        res.sendStatus(200);
+        return result;
+      },
+      function (error) { // failure
+        throw error;
+      }
+    );
   },
 
   delete : function (req, res) {
