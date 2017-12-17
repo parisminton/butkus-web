@@ -940,7 +940,7 @@
     function BigwheelForm (form_element, submit_button, class_suffix) {
       var instance = this,
           fclass,
-          fields = selectElements('input, textarea, select'),
+          fields = selectElements('input, textarea, select', form_element),
           prop,
           i;
 

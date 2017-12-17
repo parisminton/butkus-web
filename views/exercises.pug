@@ -1,0 +1,85 @@
+extends layout
+
+block content
+  h1 Manage your exercise collection
+
+  form#exercises(method="post")
+    fieldset#add_exercise
+      legend Add an exercise
+      div.field
+        label(for='add_name') Name
+        input(type='text', name='add_name', id='add_name' data-fieldtype='add_name')
+      
+      div.field
+        label(for='add_bodyweight') Is this a bodyweight exercise?
+        select(name='add_bodyweight', id='add_bodyweight' data-fieldtype='add_bodyweight')
+          option(value='true') Yes
+          option(value='false') No
+      
+      div.field
+        label(for='add_weighted') Is this exercise weighted?
+        select(name='add_weighted', id='add_weighted' data-fieldtype='add_weighted')
+          option(value='true') Yes
+          option(value='false') No
+      
+      div.field
+        label(for='add_timed') Is this exercise timed?
+        select(name='add_timed', id='add_timed' data-fieldtype='add_timed')
+          option(value='true') Yes
+          option(value='false') No
+
+      div.field
+        label(for='add_units') Units:
+        select(name='add_units', id='add_units' data-fieldtype='add_units')
+          option(value='pounds') Pounds
+          option(value='seconds') Seconds
+
+      div.field
+        label(for='add_muscle_groups') What muscle groups does this exercise involve?
+        fieldset
+          input(type='checkbox', name='add_abdomen', id='add_abdomen', data-fieldtype='add_abdomen')
+          label(for='add_abdomen') Abdomen
+
+          input(type='checkbox', name='add_biceps', id='add_biceps', data-fieldtype='add_biceps')
+          label(for='add_biceps') Biceps
+
+          input(type='checkbox', name='add_brachialis', id='add_brachialis', data-fieldtype='add_brachialis')
+          label(for='add_brachialis') Brachialis
+
+          input(type='checkbox', name='add_brachioradialis', id='add_brachioradialis', data-fieldtype='add_brachioradialis')
+          label(for='add_brachioradialis') Brachioradialis
+
+          input(type='checkbox', name='add_deltoids', id='add_deltoids', data-fieldtype='add_deltoids')
+          label(for='add_deltoids') Deltoids
+
+          input(type='checkbox', name='add_gluteus_maximus', id='add_gluteus_maximus', data-fieldtype='add_gluteus_maximus')
+          label(for='add_gluteus_maximus') Gluteus maximus
+
+          input(type='checkbox', name='add_hamstring', id='add_hamstring', data-fieldtype='add_hamstring')
+          label(for='add_hamstring') Hamstring
+
+          input(type='checkbox', name='add_latissimus_dorsi', id='add_latissimus_dorsi', data-fieldtype='add_latissimus_dorsi')
+          label(for='add_latissimus_dorsi') Latissimus dorsi
+
+          input(type='checkbox', name='add_pectoralis_major', id='add_pectoralis_major', data-fieldtype='add_pectoralis_major')
+          label(for='add_pectoralis_major') Pectoralis major
+
+          input(type='checkbox', name='add_quadriceps', id='add_quadriceps', data-fieldtype='add_quadriceps')
+          label(for='add_quadriceps') Quadriceps
+
+          input(type='checkbox', name='add_teres_major', id='add_teres_major', data-fieldtype='add_teres_major')
+          label(for='add_teres_major') Teres major
+
+          input(type='checkbox', name='add_trapezius', id='add_trapezius', data-fieldtype='add_trapezius')
+          label(for='add_trapezius') Trapezius
+
+          input(type='checkbox', name='add_triceps', id='add_triceps', data-fieldtype='add_triceps')
+          label(for='add_triceps') Triceps
+
+    fieldset#remove
+      legend Remove an exercise
+      label(for='remove_exercise')
+      select(name='remove_exercise', id='remove_exercise' data-fieldtype='remove_exercise')
+        option(value='Pick a value') Pick a value
+        each exercise in exercises
+          option(value="#{exercise}") #{exercise}

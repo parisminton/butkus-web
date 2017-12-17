@@ -44,3 +44,30 @@ exports.log = {
   }
 
 }; // end exports.log
+
+//  add/remove exercises
+exports.exercises = {
+
+  create : function (req, res) {
+  },
+
+  read : function(req, res){
+    res.render('exercises', { title : 'Butkus | Manage your exercise collection', exercises: ['jackie', 'jermaine', 'michael', 'marlon', 'tito'] });
+  },
+
+  update : function (req, res) {
+    pouchdb.saveExercise(req.body).then(
+      function (result) { // success
+        res.sendStatus(200);
+        return result;
+      },
+      function (error) { // failure
+        throw error;
+      }
+    );
+  },
+
+  delete : function (req, res) {
+  }
+
+}; // end exports.exercises
