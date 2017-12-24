@@ -27,7 +27,7 @@ exports.log = {
   read : function(req, res){
     res.render('log', {
       title: 'Butkus | Log your exercise',
-      js_path: 'log'
+      pathname: 'log'
     });
   },
 
@@ -57,7 +57,7 @@ exports.exercises = {
   read : function(req, res){
     res.render('exercises', {
       title: 'Butkus | Manage your exercise collection',
-      js_path: 'exercises',
+      pathname: 'exercises',
       exercises: ['jackie', 'jermaine', 'michael', 'marlon', 'tito']
     });
   },
