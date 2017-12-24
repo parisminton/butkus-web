@@ -25,7 +25,10 @@ exports.log = {
   },
 
   read : function(req, res){
-    res.render('log', { title : 'Butkus | Log your exercise' });
+    res.render('log', {
+      title: 'Butkus | Log your exercise',
+      js_path: 'log'
+    });
   },
 
   update : function (req, res) {
@@ -52,7 +55,11 @@ exports.exercises = {
   },
 
   read : function(req, res){
-    res.render('exercises', { title : 'Butkus | Manage your exercise collection', exercises: ['jackie', 'jermaine', 'michael', 'marlon', 'tito'] });
+    res.render('exercises', {
+      title: 'Butkus | Manage your exercise collection',
+      js_path: 'exercises',
+      exercises: ['jackie', 'jermaine', 'michael', 'marlon', 'tito']
+    });
   },
 
   update : function (req, res) {

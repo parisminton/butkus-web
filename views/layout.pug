@@ -9,4 +9,4 @@ html
   body
     include includes/viewheader
     block content
-  block requirejs_scripts
+  script(data-main= '/javascripts/' + js_path, src="/javascripts/lib/require.js")
