@@ -4,8 +4,10 @@ block content
   h1 Manage your exercise collection
 
   form#exercises(method="post")
-    fieldset#add_exercise
-      legend Add an exercise
+    button.add-exercise Add an exercise
+    button.remove-exercise Remove an exercise
+
+    fieldset#add_exercise.active
       div.field
         label(for='add_name') Name
         input(type='text', name='add_name', id='add_name' data-fieldtype='add_name')
@@ -23,7 +25,7 @@ block content
           option(value='false') No
       
       div.field
-        label(for='add_timed') Is this exercise timed?
+        label(for='add_timed') Is it timed?
         select(name='add_timed', id='add_timed' data-fieldtype='add_timed')
           option(value='true') Yes
           option(value='false') No
@@ -33,6 +35,7 @@ block content
         select(name='add_units', id='add_units' data-fieldtype='add_units')
           option(value='pounds') Pounds
           option(value='seconds') Seconds
+          option(value='minutes') Minutes
 
       div.field
         label(for='add_muscle_groups') What muscle groups does this exercise involve?
@@ -76,10 +79,16 @@ block content
           input(type='checkbox', name='add_triceps', id='add_triceps', data-fieldtype='add_triceps')
           label(for='add_triceps') Triceps
 
-    fieldset#remove
-      legend Remove an exercise
-      label(for='remove_exercise')
-      select(name='remove_exercise', id='remove_exercise' data-fieldtype='remove_exercise')
+    fieldset#remove_exercise.inactive
+      label(for='remove')
+      select(name='remove', id='remove' data-fieldtype='remove')
         option(value='Pick a value') Pick a value
         each exercise in exercises
           option(value="#{exercise}") #{exercise}
+
+    input(type='submit', id='submit_exercises' value='Add this exercise')
+
+  //- end form#exercises
+
+block requirejs_scripts
+  script(data-main='/javascripts/exercises', src='/javascripts/lib/require.js')
