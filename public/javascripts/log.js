@@ -185,5 +185,6 @@ requirejs(['bigwheel'], function (bW) {
   next_button.listenFor('click', showCurrentFormPhase, true);
   form_state.init();
 
+  console.log('I am the log JS!');
 
 });
