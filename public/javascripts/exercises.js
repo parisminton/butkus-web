@@ -18,14 +18,14 @@ requirejs(['bigwheel'], function (bW) {
     evt.preventDefault();
     remove_exercise.removeClass('active').addClass('inactive');
     add_exercise.removeClass('inactive').addClass('active');
-    submit_button[0].setAttribute('value', 'Add this exercise');
+    submit_button.attr('value', 'Add this exercise');
   } // end showAddExercise
 
   function showRemoveExercise (evt) {
     evt.preventDefault();
     remove_exercise.removeClass('inactive').addClass('active');
     add_exercise.removeClass('active').addClass('inactive');
-    submit_button[0].setAttribute('value', 'Remove this exercise');
+    submit_button.attr('value', 'Remove this exercise');
   } // end showRemoveExercise
   
   add_exercise_button.listenFor('click', showAddExercise);
