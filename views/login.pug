@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h1 Sign in to your account
+
+  form#login(method="post", data-currentphase="start")
+    div.field
+      label(for='username') Username
+      input(type='text', name='username', id='username')
+
+    div.field
+      label(for='passphrase') Passphrase
+      input(type='password', name='passphrase', id='passphrase')
+
+    input#signin(type='submit', value="Sign in")
+
+  //- end form#login

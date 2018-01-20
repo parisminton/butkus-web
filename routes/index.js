@@ -48,7 +48,7 @@ exports.log = {
 
 }; // end exports.log
 
-//  add/remove exercises
+// add/remove exercises
 exports.exercises = {
 
   create : function (req, res) {
@@ -78,3 +78,24 @@ exports.exercises = {
   }
 
 }; // end exports.exercises
+
+// login
+exports.login = {
+
+  create : function (req, res) {
+  },
+
+  read : function(req, res){
+    res.render('login', {
+      title: 'Butkus | Sign in',
+      pathname: 'login'
+    });
+  },
+
+  update : function (req, res) {
+  },
+
+  delete : function (req, res) {
+  }
+
+}; // end exports.login

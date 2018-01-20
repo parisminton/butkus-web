@@ -4,6 +4,7 @@ var express = require('express'),
     http = require('http'),
     path = require('path'),
     stylus = require('stylus'),
+    passport = require('passport'),
     // fav = require('serve-favicon'),
     morgan = require('morgan'),
     bodyparser = require('body-parser'),
@@ -20,6 +21,8 @@ app.use(morgan('dev'));
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: true }));
 app.use(mo());
+app.use(passport.initialize());
+app.use(passport.session());
 app.use(stylus.middleware(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -29,6 +32,9 @@ if ('development' == app.get('env')) {
 }
 
 app.get('/', routes.index.read);
+
+app.get('/login', routes.login.read);
+app.post('/login', routes.login.update);
 
 app.get('/log', routes.log.read);
 app.post('/log', routes.log.update);
